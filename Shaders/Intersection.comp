@@ -1,0 +1,508 @@
+﻿#version 430 core
+layout (local_size_x = 8, local_size_y = 4, local_size_z = 1) in;
+
+#define EPSILON 0.000001
+#define PI 3.1415926535897932385
+#define INFINITY 1e5
+
+#define LAMBERTIAN 0.0
+#define METAL 1.0
+#define DIELECTRIC 2.0
+#define TRANSPARENT 3.0
+#define DIFFUSE_LIGHT 4.0
+
+#define SOLID 10.0
+#define CHECKER 11.0 
+
+//for Camera
+uniform int image_width;
+uniform int image_height;
+uniform float vfov;
+uniform float aspect_ratio;
+uniform vec3 look_from;
+uniform vec3 look_at;
+
+uniform int max_depth;
+uniform int max_samples; 
+uniform int mode;
+
+uniform float seed;//for RNG
+float g_seed = 0.0;
+
+layout(rgba32f, binding = 4) uniform image2D img_output;//output image
+
+struct Ray{
+	vec3 origin;
+	vec3 direction;
+};
+
+struct Texture{
+	vec3 albedo1;
+	float type;
+	vec3 albedo2;
+};
+struct Material{
+	float type;
+	float fuzz;
+	float ir;
+	float transparency;
+	Texture tex;
+}; 
+
+struct HitRecord{
+	vec3 p;
+	bool hit_anything;
+	vec3 normal;
+	float t;
+	float u;
+	float v;
+	bool is_front_face;
+	Material mat;
+};
+
+
+struct Sphere{
+	vec3 center;
+	float radius;
+	Material mat;
+}; 
+
+layout(std140, binding = 0) buffer Spheres{
+	int sphere_size; // 4 -> 16 bytes
+	Sphere spheres[];
+}; 
+
+struct TriangleMT{
+	vec3 v0;
+	float is_one_sided;
+	vec3 v2v0;
+	vec3 v1v0;
+	Material mat;
+};
+
+layout(std140, binding = 1) buffer TrianglesMT{
+	int trianglemt_size; // 4 -> 16 bytes
+	TriangleMT trianglesmt[];
+};
+
+struct PointLight{
+	vec3 position;
+	float intensity;
+	vec3 color;
+};
+
+layout(std140, binding = 2) buffer PointLights{
+	int plight_size; // 4 -> 16 bytes
+	PointLight pointlights[];
+};
+
+vec3 point_at(float t, Ray r){
+	return r.origin+t*r.direction;
+}
+
+void sphere_uv(vec3 p, inout float u, inout float v){
+	float theta = acos(-p.y);
+	float phi = atan(-p.z,-p.x) + PI;
+	u = phi/(2*PI);
+	v = theta / PI;
+
+} 
+bool hit_sphere(Ray r,float t_min, float t_max, vec3 center, float radius, inout HitRecord hit_record){
+	vec3 direction = r.direction.xyz;
+	vec3 origin = r.origin.xyz;
+
+	vec3 oc = origin-center;
+	float a = dot(direction,direction);
+	float half_b = dot(oc,direction);
+	float c = dot(oc,oc) - radius*radius;
+	float discriminant = half_b*half_b  - a*c;
+
+	if(discriminant<0) return false;
+	float sqrtd=sqrt(discriminant);
+
+	float root = (-half_b - sqrtd)/a;
+	if(root<t_min||root>t_max){
+		root = (-half_b + sqrtd)/a;
+		if(root<t_min||root>t_max)
+			return false;
+	}
+	hit_record.t = root;
+	hit_record.p = point_at(root,r);
+	hit_record.normal = (hit_record.p - center)/radius;
+	sphere_uv(hit_record.normal,hit_record.u,hit_record.v);
+
+	float front_face = dot(direction,hit_record.normal);
+	if(front_face<0){
+		hit_record.is_front_face = true;
+	}
+	else{
+		hit_record.is_front_face = false;
+		hit_record.normal = -hit_record.normal;
+	}
+	return true;
+}
+
+bool hit_trianglemt(Ray r,float t_min, float t_max, vec3 v0, vec3 v2v0, vec3 v1v0, bool is_one_sided , inout HitRecord hit_record){
+	vec3 direction = r.direction.xyz;
+	vec3 origin = r.origin.xyz;
+
+	vec3 pvec = cross(direction,v2v0);
+	float det = dot(v1v0,pvec);
+	if(is_one_sided){
+		if (det<EPSILON) return false;
+	}
+	else{
+		if(abs(det)<EPSILON) return false;
+	}
+
+	float inv_det = 1/det;
+	
+	vec3 tvec = origin - v0;
+	float u = dot(tvec,pvec)*inv_det;
+	if(u<0 || u>1) return false;
+
+	vec3 qvec = cross(tvec, v1v0);
+	float v = dot(direction,qvec)*inv_det;
+	if(v<0 || v+u>1) return false;
+
+	float t = dot(qvec,v2v0)*inv_det;
+	if(t<EPSILON) return false;
+	if(t<t_min||t>t_max) return false;
+	
+	hit_record.t = t;
+	hit_record.p = point_at(t,r);
+	hit_record.normal = cross(v1v0,v2v0);
+	hit_record.u = u;
+	hit_record.v = v;
+
+	float front_face = dot(direction,hit_record.normal);
+	if(front_face<0){
+		hit_record.is_front_face = true;
+	}
+	else{
+		hit_record.is_front_face = false;
+		hit_record.normal = -hit_record.normal;
+	}
+
+	return true;
+}
+
+HitRecord check_intersections(Ray r, float dist){
+	HitRecord rec;
+	float closest_so_far = dist;
+	rec.hit_anything=false;
+	float minimum_point = 0.001; 
+	for(int i=0; i<sphere_size;i++)
+	{
+		if(hit_sphere(r,minimum_point,closest_so_far,spheres[i].center,spheres[i].radius,rec)){
+			rec.hit_anything = true;
+			closest_so_far = rec.t;
+			rec.mat = spheres[i].mat;
+		}
+	}
+	for(int i=0;i<trianglemt_size;i++){
+		if(hit_trianglemt(r,minimum_point,closest_so_far,trianglesmt[i].v0,trianglesmt[i].v2v0,trianglesmt[i].v1v0,bool(trianglesmt[i].is_one_sided), rec)){
+			rec.hit_anything = true;
+			closest_so_far = rec.t;
+			rec.mat = trianglesmt[i].mat;
+		}
+	}
+	return rec;
+}
+
+
+uint base_hash(uvec2 p) {
+    p = 1103515245U*((p >> 1U)^(p.yx));
+    uint h32 = 1103515245U*((p.x)^(p.y>>3U));
+    return h32^(h32 >> 16);
+}
+
+
+vec2 hash2(inout float seed) {
+    uint n = base_hash(floatBitsToUint(vec2(seed+=.1,seed+=.1)));
+    uvec2 rz = uvec2(n, n*48271U);
+    return vec2(rz.xy & uvec2(0x7fffffffU))/float(0x7fffffff);
+}
+
+vec3 hash3(inout float seed) {
+    uint n = base_hash(floatBitsToUint(vec2(seed+=.1,seed+=.1)));
+    uvec3 rz = uvec3(n, n*16807U, n*48271U);
+    return vec3(rz & uvec3(0x7fffffffU))/float(0x7fffffff);
+}
+vec3 random_in_unit_sphere( float seed) {
+    vec3 h = hash3(seed) * vec3(2.,6.28318530718,1.)-vec3(1,0,0);
+    float phi = h.y;
+    float r = pow(h.z, 1./3.);
+	return r * vec3(sqrt(1.-h.x*h.x)*vec2(sin(phi),cos(phi)),h.x);
+}
+
+//Generates rays from camera
+Ray generate_ray(bool random){
+
+	const vec3 vup = vec3(0,1,0);
+	float theta = radians(vfov);
+	float h = tan(theta/2);
+	float viewport_height = 2.0*h;
+	float viewport_width = aspect_ratio*viewport_height;
+
+	vec3 w = normalize(look_from-look_at);
+	vec3 u = normalize(cross(vup,w));
+	vec3 v = cross(w,u);
+	
+	vec3 horizontal = viewport_width*u;
+	vec3 vertical = viewport_height*v;
+	vec3 lower_left_corner = look_from - horizontal/2 - vertical/2 - w;
+	float t,s;
+	if(random){
+		t = float(gl_GlobalInvocationID.x+hash2(g_seed).x)/(gl_NumWorkGroups.x*gl_WorkGroupSize.x-1);
+		s = float(gl_GlobalInvocationID.y+hash2(g_seed).y)/(gl_NumWorkGroups.y*gl_WorkGroupSize.y-1);
+	}
+	else{
+		t = float(gl_GlobalInvocationID.x)/(gl_NumWorkGroups.x*gl_WorkGroupSize.x-1);
+		s = float(gl_GlobalInvocationID.y)/(gl_NumWorkGroups.y*gl_WorkGroupSize.y-1);
+	}
+
+	vec3 direction = lower_left_corner + t*horizontal + s*vertical - look_from;
+	
+	Ray ray = Ray(look_from,direction);
+	
+	return ray;
+}
+
+//Returns texture depending color
+vec3 tex_color(HitRecord rec){
+	if(rec.mat.tex.type == SOLID){
+		return rec.mat.tex.albedo1;
+	}
+	if(rec.mat.tex.type == CHECKER){
+		//float sines = sin(10 * rec.p.x) *  sin(10 * rec.p.y) * sin(10 * rec.p.z); add object type
+		int u = int(round(rec.u*50));
+		int v = int(round(rec.v*25));
+		if((u+v)%2==0)
+			return rec.mat.tex.albedo1;
+		else
+			return rec.mat.tex.albedo2;
+	}
+
+}
+
+float reflectance(float cosine, float ref_idx){
+	float r0 = (1 - ref_idx) / (1+ ref_idx);
+	r0 = r0*r0;
+	return r0 +(1-r0)*pow((1-cosine),5);
+}
+
+//Creates new ray and modifies color depending on material of object that wa hit by ray
+bool scatter(Ray r, HitRecord rec,out vec3 attenuation, out Ray scattered){
+	if(rec.mat.type == LAMBERTIAN){
+		vec3 scatter_direction = rec.normal+random_in_unit_sphere(g_seed);
+
+		scattered = Ray(rec.p,scatter_direction);
+		attenuation = tex_color(rec);
+		return true;
+	}
+	if(rec.mat.type == METAL){
+		vec3 reflected = reflect(normalize(r.direction),rec.normal);
+		scattered = Ray(rec.p, reflected + rec.mat.fuzz * random_in_unit_sphere(g_seed));
+		attenuation = tex_color(rec);
+		return true;
+	}
+	if(rec.mat.type == DIELECTRIC){
+		attenuation = tex_color(rec);
+		float refraction_ration = rec.is_front_face? (1.0/rec.mat.ir):rec.mat.ir;
+		vec3 unit_dir = normalize(r.direction);
+		float cos_theta = min(dot(-unit_dir,rec.normal),1.0);
+		float sin_theta = sqrt(1.0 - cos_theta*cos_theta);
+
+		bool cannot_refract = refraction_ration * sin_theta > 1.0;
+		vec3 direction;
+		if(cannot_refract || reflectance(cos_theta, refraction_ration)> hash2(g_seed).x)
+			direction = reflect(unit_dir,rec.normal);
+		else
+			direction = refract(unit_dir,rec.normal,refraction_ration);
+		scattered = Ray(rec.p,direction);
+		return true;
+	}
+	if(rec.mat.type == TRANSPARENT){
+		scattered = Ray(rec.p, r.direction);
+		attenuation = tex_color(rec) * rec.mat.transparency;
+		return true;
+	}
+	return false;
+}	
+//Returns emmited color for objects that can emit light
+vec3 material_emit(HitRecord rec){
+	if(rec.mat.type == DIFFUSE_LIGHT){
+		return tex_color(rec);
+	}
+	else
+		return vec3(0);
+}
+
+void get_direction(inout PointLight light, vec3 p,out float light_distance, inout vec3 light_direction){
+	light_direction = p-light.position;
+	light_distance = length(light_direction);
+
+	light_direction/=light_distance;
+}
+
+//Creates shadow ray and check if it intersect with any object 
+bool check_shadow(HitRecord rec,inout PointLight light, out float dist,inout vec3 light_direction){
+	int i=0;
+	get_direction(light, rec.p, dist,light_direction);
+	Ray shr = Ray(rec.p+rec.normal*0.001,-light_direction+hash3(g_seed)*0.01);
+	HitRecord shadow_rec = check_intersections(shr,dist);
+	
+	while(shadow_rec.hit_anything && (shadow_rec.mat.type == DIELECTRIC||shadow_rec.mat.type == TRANSPARENT) && i<5){
+		shr = Ray(shadow_rec.p,-light_direction);
+		shadow_rec = check_intersections(shr,dist);
+		i++;
+	}
+	return !shadow_rec.hit_anything || shadow_rec.mat.type == DIFFUSE_LIGHT;
+}
+
+//Calculate ammount of light from light sources for each hit point 
+vec3 light(vec3 col, HitRecord rec){
+	vec3 light_sum = vec3(0);
+	float light_distance;
+	vec3 light_direction;
+	for(int i=0;i<plight_size;i++){
+		if(check_shadow(rec,pointlights[i],light_distance, light_direction))
+			light_sum +=  tex_color(rec)*pointlights[i].intensity * pointlights[i].color / (4 * PI * light_distance * light_distance) * max(0, dot(rec.normal,-light_direction));
+	}
+
+	return light_sum;
+}
+
+
+//Returns accumulated color for one given ray
+bool get_color(HitRecord rec,inout vec3 color,inout vec3 emitted,inout vec3 refl, inout Ray ray, vec3 background, int i){
+	if(rec.hit_anything){
+		Ray scattered;
+		vec3 attenuation;
+
+		if(rec.mat.type == DIFFUSE_LIGHT){
+			emitted += i == 0? material_emit(rec):color+material_emit(rec);
+			return false;
+		}
+
+		if(scatter(ray,rec, attenuation, scattered)){
+			ray = scattered;
+			if(rec.mat.type == METAL){
+				refl*=0.8;
+				HitRecord backgorund_rec = check_intersections(ray, INFINITY);
+				if(!backgorund_rec.hit_anything)
+					color+=refl*background;
+				return true;
+			}
+			if(rec.mat.type == DIELECTRIC){
+				HitRecord backgorund_rec = check_intersections(ray,INFINITY);
+				if(!backgorund_rec.hit_anything)
+					color+=background;
+				return true;
+			}
+			if(rec.mat.type == TRANSPARENT){
+					color +=light(attenuation,rec);
+					
+				return true;
+			}
+
+			color+=refl*light(color,rec);
+			return true;
+		}
+		else{
+			color= vec3(0);
+			return false;
+			}
+
+	}
+	else{
+		if(i == 0){
+			emitted = background;
+		}
+		else{
+			emitted = color;
+		}
+		return false;
+	}
+}
+
+vec3 get_sky_color(Ray ray){
+	vec3 unit_vector = normalize(ray.direction.xyz);
+	float t = 0.5f * (unit_vector.y+1.0f);
+	return (1.0f - t) * vec3(1.0f,1.0f,1.0f) + t * vec3(0.5f,0.7f,1.0f);
+}
+
+//Traces rays and returns accumulated color for multiple samples 
+void trace_color(inout vec4 out_pixel){
+	vec3 temp_color = vec3(0); 
+	for(int j=0; j<max_samples; j++){
+		vec3 color = vec3(0);
+		vec3 emitted = vec3(0);
+		vec3 background = vec3(0);
+		vec3 refl = vec3(1.0);
+		g_seed+=0.01;
+
+		Ray ray = generate_ray(true);
+		//background = get_sky_color(ray);
+
+		for(int i=0; i<max_depth; i++){
+			HitRecord record = check_intersections(ray,INFINITY);
+			if(!get_color(record,color,emitted,refl,ray,background,i))
+				break;
+		}
+		temp_color += emitted;
+	}
+	out_pixel.xyz = temp_color/max_samples;
+}
+//Traces rays and returns distance to each object in grayscale
+void trace_distance(inout vec4 out_pixel){
+	Ray ray = generate_ray(false);
+	HitRecord record = check_intersections(ray,INFINITY);
+	float t = mix(0.0,1.0,record.t/5);
+	if(record.hit_anything)
+		out_pixel = vec4(vec3(t),1);
+	else
+		out_pixel = vec4(1);
+}
+//Traces rays and returns normals of all objects
+void trace_normals(inout vec4 out_pixel){
+	Ray ray = generate_ray(false);
+	HitRecord record = check_intersections(ray,INFINITY);
+	float t = mix(0.0,1.0,record.t/5);
+	if(record.hit_anything)
+		out_pixel = vec4(record.normal,1);
+	else
+		out_pixel = vec4(0);
+}
+void main()
+{
+	ivec2 pixel_coords = ivec2(gl_GlobalInvocationID.xy);
+	ivec2 size = imageSize(img_output);
+	if (pixel_coords.x >= size.x || pixel_coords.y >= size.y) {
+		return;
+	}
+
+	vec4 out_pixel = vec4(vec3(0),1);
+	g_seed = float(base_hash(floatBitsToUint(gl_GlobalInvocationID.xy)))/float(0xffffffffU)+seed;
+
+
+	switch(mode){
+	case 0:
+		trace_color(out_pixel);
+		break;
+	case 1:
+		trace_distance(out_pixel);
+		break;
+	case 2:
+		trace_normals(out_pixel);
+		break;
+	}
+
+	imageStore(img_output, pixel_coords, out_pixel);
+
+	
+}
+
+
+

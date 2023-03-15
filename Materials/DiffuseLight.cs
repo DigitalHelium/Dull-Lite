@@ -1,0 +1,51 @@
+﻿using Dull.ObjectTexture;
+using OpenTK.Mathematics;
+
+
+namespace Dull.Materials
+{
+    class DiffuseLight:IMaterial
+    {
+        private static int _objectSize = 1;
+        private ITexture _tex;
+        private const MaterialType _type = MaterialType.DiffuseLight;
+        private Vector4[] _data;
+
+        public DiffuseLight(ITexture tex)
+        {
+            _tex = tex;
+            _data = new Vector4[_objectSize + tex.GetSizeInVec4()];
+            SetStd140Data();
+        }
+        public MaterialType GetMaterialType()
+        {
+            return _type;
+        }
+
+        public int GetSizeInBytes()
+        {
+            return _data.Length * Vector4.SizeInBytes;
+        }
+        public int GetSizeInVec4()
+        {
+            return _data.Length;
+        }
+        private void SetStd140Data()
+        {
+            _data[0].X = (float)_type;
+            Vector4[] texData = _tex.GetSTD140Data();
+            for (int i = _objectSize; i < _data.Length; i++)
+                _data[i] = texData[i - _objectSize];
+        }
+
+        public Vector4[] GetSTD140Data()
+        {
+
+            return _data;
+        }
+        public string GetInfo()
+        {
+            return $"Material:DiffuseLight\n  {_tex.GetInfo()}";
+        }
+    }
+}
