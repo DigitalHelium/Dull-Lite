@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using Dull.GUI;
 using Dull.Lights;
 using Dull.Materials;
 using Dull.Objects;
 using Dull.ObjectTexture;
+using ImGuiNET;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
@@ -14,6 +16,8 @@ namespace Dull
 {
     class Screen:GameWindow
     {
+        ImGuiController _controller;
+
         private Shader _shader;
         private ComputeShader _intersectionShader;
 
@@ -43,6 +47,10 @@ namespace Dull
         DateTime _startTime = new DateTime(1970, 1, 1);
 
         public Screen(int width, int height) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height)}) { }
+        protected override void OnUpdateFrame(FrameEventArgs args)
+        {
+            base.OnUpdateFrame(args);
+        }
         protected override void OnLoad()
         {
             base.OnLoad();
@@ -108,11 +116,15 @@ namespace Dull
             
 
             _renderQuad = new Texture(Size.X, Size.Y, PixelInternalFormat.Rgb32f, PixelFormat.Rgba, (IntPtr)0,4);
+
+            _controller = new ImGuiController(Size.X, Size.Y);
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
+            _controller.Update(this,(float)e.Time);//new
+
             if (RenderTime < 0.6)
                 Title = (int)(1 / RenderTime) + " FPS";
             else
@@ -125,9 +137,7 @@ namespace Dull
             GL.Uniform3(_camera.LookAtLocation, _camera.LookAt);
 
 
-            TimeSpan t = DateTime.Now - _startTime;
-            float seed = (float)(t.TotalSeconds % 1);
-            GL.Uniform1(_misc.SeedLocation, seed);
+            GL.Uniform1(_misc.SeedLocation, (float)e.Time%1);
 
             GL.DispatchCompute(Size.X/8, Size.Y/4, 1);
             GL.MemoryBarrier(MemoryBarrierFlags.AllBarrierBits);
@@ -143,6 +153,10 @@ namespace Dull
 
             GL.BindVertexArray(_vertexArrayObject);
             GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
+
+
+            onDrawGUI();//new
+            _controller.Render();
             SwapBuffers();
         }
         protected override void OnResize(ResizeEventArgs e)
@@ -156,6 +170,8 @@ namespace Dull
             _shader.Use();
 
             _renderQuad.UpdateTextureParams(e.Width, e.Height, (IntPtr)0);
+
+            _controller.WindowResized(e.Width, e.Height);
             base.OnResize(e);
             
         }
@@ -164,6 +180,7 @@ namespace Dull
             if(KeyboardState.IsAnyKeyDown || KeyboardState.WasKeyDown(Keys.C))
                 _camera.UpdateCameraPosition(KeyboardState, (float)RenderTime);
         }
+        bool isCursorGrabbed = true;
         protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
             base.OnKeyDown(e);
@@ -172,7 +189,18 @@ namespace Dull
                 Close();
 
             if (e.Key == Keys.Tab)
-                CursorState = CursorState.Normal;
+            {
+                if (isCursorGrabbed) 
+                {
+                    CursorState = CursorState.Normal;
+                    isCursorGrabbed = false;
+                }
+                else 
+                {
+                    CursorState = CursorState.Grabbed;
+                    isCursorGrabbed = true;
+                }
+            }
 
 
             if (e.Key == Keys.D1)
@@ -203,6 +231,54 @@ namespace Dull
             base.OnMouseWheel(e);
 
             _camera.FOV -= e.OffsetY; 
+        }
+
+
+        bool enabled = true;
+        void onDrawGUI()
+        {
+            //ImGui.ShowDemoWindow();
+
+            if (ImGui.BeginMainMenuBar())
+            {
+                if (ImGui.BeginMenu("File"))
+                {
+                    if (ImGui.MenuItem("Open", "CTRL+O"))
+                    {
+                    }
+
+                    ImGui.Separator();
+                    if (ImGui.MenuItem("Save", "CTRL+S"))
+                    {
+                    }
+
+                    if (ImGui.MenuItem("Save As", "CTRL+Shift+S"))
+                    {
+                    }
+
+                    ImGui.EndMenu();
+                }
+
+                if (ImGui.BeginMenu("Settings"))
+                {
+                    ImGui.Checkbox("Enabled", ref enabled);
+
+                    ImGui.EndMenu();
+                }
+
+                ImGui.EndMainMenuBar();
+            }
+
+            if (ImGui.Begin("Objects"))
+            {
+                if (ImGui.TreeNode("Objects"))
+                {
+
+                    ImGui.TreePop();
+                }
+
+                ImGui.End();
+            }
         }
 
     }
