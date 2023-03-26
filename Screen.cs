@@ -47,10 +47,7 @@ namespace Dull
         DateTime _startTime = new DateTime(1970, 1, 1);
 
         public Screen(int width, int height) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height)}) { }
-        protected override void OnUpdateFrame(FrameEventArgs args)
-        {
-            base.OnUpdateFrame(args);
-        }
+       
         protected override void OnLoad()
         {
             base.OnLoad();
@@ -108,8 +105,8 @@ namespace Dull
             _list.AddHittable(new Sphere(new Vector3(-1.3f, 0.3f, -2), 0.8f, die));
             _list.AddHittable(new Sphere(new Vector3(-0.7f, 0, -1), 0.3f, checker));
 
-           // _list.AddHittable(new TriangleMT(new Vector3(-1, 0, -1), new Vector3(-1, 0.2f, -3), new Vector3(1, 0, -1), false, white));
-           // _list.AddHittable(new TriangleMT(new Vector3(-1, 0.2f, -3), new Vector3(1, 0, -1), new Vector3(1, 0.2f, -3), false, white));
+            // _list.AddHittable(new TriangleMT(new Vector3(-1, 0, -1), new Vector3(-1, 0.2f, -3), new Vector3(1, 0, -1), false, white));
+            // _list.AddHittable(new TriangleMT(new Vector3(-1, 0.2f, -3), new Vector3(1, 0, -1), new Vector3(1, 0.2f, -3), false, white));
             //_list.AddHittable(new Sphere(new Vector3(0, 0.7f, -2), 0.5f, red));
             _list.DataToBuffer(_intersectionShader.Handle);
 
@@ -119,11 +116,14 @@ namespace Dull
 
             _controller = new ImGuiController(Size.X, Size.Y);
         }
-
+        protected override void OnUpdateFrame(FrameEventArgs args)
+        {
+            _controller.Update(this, (float)args.Time);//new
+            base.OnUpdateFrame(args);
+        }
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
-            _controller.Update(this,(float)e.Time);//new
 
             if (RenderTime < 0.6)
                 Title = (int)(1 / RenderTime) + " FPS";
@@ -234,10 +234,9 @@ namespace Dull
         }
 
 
-        bool enabled = true;
         void OnDrawGUI()
         {
-            ImGui.ShowDemoWindow();
+            //ImGui.ShowDemoWindow();
 
             if (ImGui.BeginMainMenuBar())
             {
@@ -250,14 +249,6 @@ namespace Dull
 
                     ImGui.EndMenu();
                 }
-
-                if (ImGui.BeginMenu("Settings"))
-                {
-                    ImGui.Checkbox("Enabled", ref enabled);
-
-                    ImGui.EndMenu();
-                }
-
                 ImGui.EndMainMenuBar();
             }
 
@@ -265,6 +256,21 @@ namespace Dull
             {
                 if (ImGui.TreeNode("Objects"))
                 {
+                    foreach(IHittable hittable in _list.GetHittables())
+                    {
+                        if (ImGui.TreeNode(hittable.GetOffset().ToString()))
+                        {
+                            Vector3 v = hittable.GetPostion();
+                            System.Numerics.Vector3 k = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+
+                            ImGui.DragFloat3("Postion", ref k, 0.1f);
+
+                            hittable.SetPostion(new Vector3(k.X, k.Y, k.Z));
+
+                            _list.ChangeHittable(hittable);
+                            ImGui.TreePop();
+                        }
+                    }
 
                     ImGui.TreePop();
                 }

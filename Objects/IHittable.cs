@@ -11,5 +11,8 @@ namespace Dull.Objects
         void SetOffset(int offset);
         int GetSizeInBytes();
         string GetInfo();
+
+        Vector3 GetPostion();
+        void SetPostion(Vector3 position);
     }
 }

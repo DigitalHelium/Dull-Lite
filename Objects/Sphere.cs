@@ -14,6 +14,7 @@ namespace Dull.Objects
         Vector4[] _data;
         private int _byteOffset = -1;
         private IMaterial _mat;
+        private bool _isUpdated = true;
         public Sphere(Vector3 center, float radius, IMaterial mat)
         {
             _center = center;
@@ -26,13 +27,16 @@ namespace Dull.Objects
         public Vector4[] GetStd140Data()
         {
             SetStd140Data();
-            Console.WriteLine(GetInfo());
             return _data;
         }
         private void SetStd140Data()
         {
-            _data[0].Xyz = _center;
-            _data[0].W = _radius;
+            if (_isUpdated)
+            {
+                _data[0].Xyz = _center;
+                _data[0].W = _radius;
+                _isUpdated = !_isUpdated;
+            }
             Vector4[] matData = _mat.GetSTD140Data();
             for (int i = _objectSize; i < _data.Length; i++)
                 _data[i] = matData[i - _objectSize];
@@ -60,6 +64,17 @@ namespace Dull.Objects
         public string GetInfo()
         {
             return $"Object:Sphere Position:{_data[0]}\n {_mat.GetInfo()}";
+        }
+
+        public Vector3 GetPostion()
+        {
+            return _center;
+        }
+
+        public void SetPostion(Vector3 position)
+        {
+            _center = position;
+            _isUpdated = !_isUpdated;
         }
     }
 }
