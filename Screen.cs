@@ -155,7 +155,7 @@ namespace Dull
             GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
 
 
-            onDrawGUI();//new
+            OnDrawGUI();//new
             _controller.Render();
             SwapBuffers();
         }
@@ -222,38 +222,30 @@ namespace Dull
         protected override void OnMouseMove(MouseMoveEventArgs e)
         {
             base.OnMouseMove(e);
-
-            _camera.UpdateCameraRotation(e.DeltaX, e.DeltaY);
+            if(isCursorGrabbed)
+                _camera.UpdateCameraRotation(e.DeltaX, e.DeltaY);
         }
 
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
             base.OnMouseWheel(e);
-
-            _camera.FOV -= e.OffsetY; 
+            if(isCursorGrabbed)
+                _camera.FOV -= e.OffsetY; 
         }
 
 
         bool enabled = true;
-        void onDrawGUI()
+        void OnDrawGUI()
         {
-            //ImGui.ShowDemoWindow();
+            ImGui.ShowDemoWindow();
 
             if (ImGui.BeginMainMenuBar())
             {
                 if (ImGui.BeginMenu("File"))
                 {
-                    if (ImGui.MenuItem("Open", "CTRL+O"))
+                    if (ImGui.MenuItem("Exit", "Esc"))
                     {
-                    }
-
-                    ImGui.Separator();
-                    if (ImGui.MenuItem("Save", "CTRL+S"))
-                    {
-                    }
-
-                    if (ImGui.MenuItem("Save As", "CTRL+Shift+S"))
-                    {
+                        Close();
                     }
 
                     ImGui.EndMenu();

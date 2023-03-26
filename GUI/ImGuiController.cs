@@ -219,25 +219,25 @@ void main()
         {
             ImGuiIOPtr io = ImGui.GetIO();
 
-            MouseState MouseState = wnd.MouseState;
+            MouseState mouseState = wnd.MouseState;
             if (PrevMouseState == null)
-                PrevMouseState = MouseState;
-            KeyboardState KeyboardState = wnd.KeyboardState;
+                PrevMouseState = mouseState;
+            KeyboardState keyboardState = wnd.KeyboardState;
 
 
-            io.MouseDown[0] = MouseState.IsButtonPressed(MouseButton.Left);
-            io.MouseDown[1] = MouseState.IsButtonPressed(MouseButton.Right);
-            io.MouseDown[2] = MouseState.IsButtonPressed(MouseButton.Middle);
+            io.MouseDown[0] = mouseState.IsButtonDown(MouseButton.Left);
+            io.MouseDown[1] = mouseState.IsButtonDown(MouseButton.Right);
+            io.MouseDown[2] = mouseState.IsButtonDown(MouseButton.Middle);
 
-            io.MousePos = new System.Numerics.Vector2(MouseState.X, MouseState.Y);
+            io.MousePos = new System.Numerics.Vector2(mouseState.X, mouseState.Y);
 
-            io.MouseWheel = MouseState.Scroll.Y - PrevMouseState.Scroll.Y;
-            io.MouseWheelH = MouseState.Scroll.X - PrevMouseState.Scroll.X;
+            io.MouseWheel = mouseState.ScrollDelta.Y;
+            io.MouseWheelH = mouseState.ScrollDelta.X;
 
             foreach (Keys key in Enum.GetValues(typeof(Keys)))
             {
                 if(key != Keys.Unknown)
-                    io.KeysDown[(int)key] = KeyboardState.IsKeyDown(key);
+                    io.KeysDown[(int)key] = keyboardState.IsKeyDown(key);
             }
 
             foreach (var c in PressedChars)
@@ -246,13 +246,13 @@ void main()
             }
             PressedChars.Clear();
 
-            io.KeyCtrl = KeyboardState.IsKeyDown(Keys.LeftControl) || KeyboardState.IsKeyDown(Keys.RightControl);
-            io.KeyAlt = KeyboardState.IsKeyDown(Keys.LeftAlt) || KeyboardState.IsKeyDown(Keys.RightAlt);
-            io.KeyShift = KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift);
-            io.KeySuper = KeyboardState.IsKeyDown(Keys.LeftSuper) || KeyboardState.IsKeyDown(Keys.RightSuper);
+            io.KeyCtrl = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
+            io.KeyAlt = keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt);
+            io.KeyShift = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
+            io.KeySuper = keyboardState.IsKeyDown(Keys.LeftSuper) || keyboardState.IsKeyDown(Keys.RightSuper);
 
-            PrevMouseState = MouseState;
-            PrevKeyboardState = KeyboardState;
+            PrevMouseState = mouseState;
+            PrevKeyboardState = keyboardState;
         }
 
 
@@ -278,6 +278,9 @@ void main()
             io.KeyMap[(int)ImGuiKey.Enter] = (int)Keys.Enter;
             io.KeyMap[(int)ImGuiKey.Escape] = (int)Keys.Escape;
             io.KeyMap[(int)ImGuiKey.A] = (int)Keys.A;
+            io.KeyMap[(int)ImGuiKey.W] = (int)Keys.W;
+            io.KeyMap[(int)ImGuiKey.S] = (int)Keys.S;
+            io.KeyMap[(int)ImGuiKey.D] = (int)Keys.D;
             io.KeyMap[(int)ImGuiKey.C] = (int)Keys.C;
             io.KeyMap[(int)ImGuiKey.V] = (int)Keys.V;
             io.KeyMap[(int)ImGuiKey.X] = (int)Keys.X;

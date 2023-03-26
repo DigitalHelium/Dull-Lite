@@ -38,7 +38,7 @@ namespace Dull.Lights
 
         public string GetInfo()
         {
-            return $"Light:PointLight Position:{_data[0]} Intensity: {_intensity} Color: {_color}\n";
+            return $"Light:PointLight Position:{_data[0]} Intensity: {_intensity} Color: {_color}";
         }
 
         public int GetOffset()
