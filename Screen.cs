@@ -236,7 +236,7 @@ namespace Dull
 
         void OnDrawGUI()
         {
-            //ImGui.ShowDemoWindow();
+            ImGui.ShowDemoWindow();
 
             if (ImGui.BeginMainMenuBar())
             {
