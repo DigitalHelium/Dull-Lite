@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using Dull.Materials;
+using OpenTK.Mathematics;
 
 namespace Dull.Objects
 {
@@ -14,5 +15,8 @@ namespace Dull.Objects
 
         Vector3 GetPostion();
         void SetPostion(Vector3 position);
+
+        IMaterial GetMaterial();
+        void SetMaterial(IMaterial material);
     }
 }

@@ -94,5 +94,13 @@ namespace Dull.Objects
             _postion = position;
             _isUpdated = !_isUpdated;
         }
+        public IMaterial GetMaterial()
+        {
+            return _mat;
+        }
+        public void SetMaterial(IMaterial material)
+        {
+            _mat = material;
+        }
     }
 }

@@ -17,6 +17,12 @@ namespace Dull.ObjectTexture
             _data = new Vector4[_objectSize];
             SetStd140Data();
         }
+        public SolidColor()
+        {
+            _albedo = new Vector3(0.5f);
+            _data = new Vector4[_objectSize];
+            SetStd140Data();
+        }
         private void SetStd140Data()
         {
             _data[0].Xyz = _albedo;
@@ -40,12 +46,23 @@ namespace Dull.ObjectTexture
 
         public Vector4[] GetSTD140Data()
         {
+            SetStd140Data();
             return _data;
         }
 
         public TextureType GetTextureType()
         {
             return _type;
+        }
+
+        public Vector3[] GetAlbedo()
+        {
+            return new Vector3[]{ _albedo };
+        }
+
+        public void SetAlbedo(params Vector3[] albedo)
+        {
+            _albedo = albedo[0];
         }
     }
 }

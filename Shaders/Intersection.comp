@@ -389,16 +389,20 @@ bool get_color(HitRecord rec,inout vec3 color,inout vec3 emitted,inout vec3 refl
 		if(scatter(ray,rec, attenuation, scattered)){
 			ray = scattered;
 			if(rec.mat.type == METAL){
-				refl*=0.8;
+				refl*=1-rec.mat.fuzz;
 				HitRecord backgorund_rec = check_intersections(ray, INFINITY);
 				if(!backgorund_rec.hit_anything)
-					color+=refl*background;
+					color+= background == 0? refl*attenuation : refl*background*attenuation;
+				else
+					color+= i == 0? attenuation:color*attenuation;
 				return true;
 			}
 			if(rec.mat.type == DIELECTRIC){
 				HitRecord backgorund_rec = check_intersections(ray,INFINITY);
 				if(!backgorund_rec.hit_anything)
-					color+=background;
+					color+=background == 0 ?attenuation : background*attenuation;
+				else
+					color+= i == 0? attenuation:color*attenuation;
 				return true;
 			}
 			if(rec.mat.type == TRANSPARENT){

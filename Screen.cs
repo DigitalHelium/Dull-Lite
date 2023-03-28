@@ -87,10 +87,10 @@ namespace Dull
             
             Lambertian red = new Lambertian(new SolidColor(new Vector3(1.0f, 0.0f, 0.0f)));
             Lambertian green = new Lambertian(new SolidColor(new Vector3(0.0f, 1.0f, 0.0f)));
-            Metal white = new Metal(new SolidColor(new Vector3(1.0f, 0.3f, 0.3f)),0);
+            Metal white = new Metal(new SolidColor(new Vector3(0)),0);
             Lambertian checker = new Lambertian(new CheckerPattern(new Vector3(0), new Vector3(1)));
             Transparent trans = new Transparent(new SolidColor(new Vector3(0.3f, 0.1f, 0.5f)), 1.1f);
-            Dielectric die = new Dielectric(new SolidColor(new Vector3(1.0f, 1.0f, 1.0f)), 1.5f);
+            Dielectric die = new Dielectric(new SolidColor(new Vector3(0)), 1.5f);
             DiffuseLight light = new DiffuseLight(new SolidColor(new Vector3(0.7f, 0.3f,1f)));
 
             _lights = new LightList();
@@ -262,11 +262,61 @@ namespace Dull
                         {
                             Vector3 v = hittable.GetPostion();
                             System.Numerics.Vector3 k = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+                            if (ImGui.DragFloat3("Postion", ref k, 0.1f))
+                                hittable.SetPostion(new Vector3(k.X, k.Y, k.Z));
+                            ;
+                            IMaterial mat = hittable.GetMaterial();
+                            int type = (int)mat.GetMaterialType();
+                            if (ImGui.SliderInt("Material", ref type, 0, 4, mat.GetMaterialType().ToString()))
+                            {
+                                switch (type)
+                                {
+                                    case ((int)MaterialType.Dielectric): mat = new Dielectric(mat.GetTexture()); break;
+                                    case ((int)MaterialType.DiffuseLight): mat = new DiffuseLight(mat.GetTexture()); break;
+                                    case ((int)MaterialType.Lambertian): mat = new Lambertian(mat.GetTexture()); break;
+                                    case ((int)MaterialType.Metal): mat = new Metal(mat.GetTexture()); break;
+                                    case ((int)MaterialType.Transparent): mat = new Transparent(mat.GetTexture()); break;
+                                }
+                                hittable.SetMaterial(mat);
+                            }
+                            if (type == (int)MaterialType.Dielectric || type == (int)MaterialType.Metal || type == (int)MaterialType.Transparent)
+                            {
+                                float param = mat.GetParam().Value;
+                                if (ImGui.DragFloat("param", ref param, 0.005f))
+                                    mat.SetParam(param);
+                            }
 
-                            ImGui.DragFloat3("Postion", ref k, 0.1f);
-
-                            hittable.SetPostion(new Vector3(k.X, k.Y, k.Z));
-
+                            ITexture tex = mat.GetTexture();
+                            type = (int)tex.GetTextureType();
+                            if (ImGui.SliderInt("Texture", ref type, 10, 11, tex.GetTextureType().ToString()))
+                            {
+                                switch (type)
+                                {
+                                    case ((int)TextureType.Solid): tex = new SolidColor(tex.GetAlbedo()[0]); break;
+                                    case ((int)TextureType.Checker): tex = new CheckerPattern(tex.GetAlbedo()[0]); break;
+                                }
+                                mat.SetTexture(tex);
+                            }
+                            switch (type) {
+                                case((int)TextureType.Solid):
+                                {
+                                    Vector3 col = tex.GetAlbedo()[0];
+                                    System.Numerics.Vector3 c = new System.Numerics.Vector3(col.X, col.Y, col.Z);
+                                    if (ImGui.ColorEdit3("Color", ref c))
+                                        tex.SetAlbedo(new Vector3[] { new Vector3(c.X, c.Y, c.Z) });
+                                    break;
+                                }
+                                case ((int)TextureType.Checker):
+                                {
+                                    Vector3 odd = tex.GetAlbedo()[0];
+                                    Vector3 even = tex.GetAlbedo()[1];
+                                    System.Numerics.Vector3 c1 = new System.Numerics.Vector3(odd.X, odd.Y, odd.Z);
+                                    System.Numerics.Vector3 c2 = new System.Numerics.Vector3(even.X, even.Y, even.Z);
+                                    if (ImGui.ColorEdit3("Odd Color", ref c1) | ImGui.ColorEdit3("Even Color", ref c2))
+                                        tex.SetAlbedo(new Vector3[] { new Vector3(c1.X, c1.Y, c1.Z), new Vector3(c2.X, c2.Y, c2.Z) });
+                                    break;
+                                }
+                            }
                             _list.ChangeHittable(hittable);
                             ImGui.TreePop();
                         }

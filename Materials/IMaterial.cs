@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using Dull.ObjectTexture;
+using OpenTK.Mathematics;
 
 namespace Dull.Materials
 {
@@ -10,5 +11,11 @@ namespace Dull.Materials
         MaterialType GetMaterialType();
         Vector4[] GetSTD140Data();
         string GetInfo();
+
+        float? GetParam();
+        void SetParam(float? param);
+
+        ITexture GetTexture();
+        void SetTexture(ITexture tex);
     }
 }
