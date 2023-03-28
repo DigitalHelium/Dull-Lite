@@ -5,6 +5,7 @@ using Dull.Lights;
 using Dull.Materials;
 using Dull.Objects;
 using Dull.ObjectTexture;
+using Dull.Scenes;
 using ImGuiNET;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -23,8 +24,7 @@ namespace Dull
 
         private Texture _renderQuad;
 
-        private HittableList _list;
-        private LightList _lights;
+        BaseScene _scene;
 
         private MiscUniforms _misc;
 
@@ -42,9 +42,6 @@ namespace Dull
             0, 1, 3,   // first triangle
             1, 2, 3    // second triangle
         };
-
-        private Camera _camera;
-        DateTime _startTime = new DateTime(1970, 1, 1);
 
         public Screen(int width, int height) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height)}) { }
        
@@ -74,8 +71,8 @@ namespace Dull
             _intersectionShader = new ComputeShader(@"..\..\..\Shaders\Intersection.comp");
             _intersectionShader.Use();
 
-            _camera = new Camera((float)Size.X / Size.Y, 90.0f, new Vector3(0, 0, 0));
-            _camera.UpdateParamLocations(_intersectionShader.Handle);
+            _scene = new GrassScene((float)Size.X / Size.Y);
+            _scene.Camera.UpdateParamLocations(_intersectionShader.Handle);
 
             _misc = new MiscUniforms(0, 1, 16);
             _misc.UpdateParamLocations(_intersectionShader.Handle);
@@ -83,32 +80,15 @@ namespace Dull
             GL.Uniform1(_misc.MaxSamplesLocation, _misc.MaxSamples);
             GL.Uniform1(_misc.MaxDepthLocation, _misc.MaxDepth);
 
-            _list = new HittableList();
             
-            Lambertian red = new Lambertian(new SolidColor(new Vector3(1.0f, 0.0f, 0.0f)));
-            Lambertian green = new Lambertian(new SolidColor(new Vector3(0.0f, 1.0f, 0.0f)));
-            Metal white = new Metal(new SolidColor(new Vector3(0)),0);
-            Lambertian checker = new Lambertian(new CheckerPattern(new Vector3(0), new Vector3(1)));
-            Transparent trans = new Transparent(new SolidColor(new Vector3(0.3f, 0.1f, 0.5f)), 1.1f);
-            Dielectric die = new Dielectric(new SolidColor(new Vector3(0)), 1.5f);
-            DiffuseLight light = new DiffuseLight(new SolidColor(new Vector3(0.7f, 0.3f,1f)));
-
-            _lights = new LightList();
-
-            _lights.AddLight(new PointLight(new Vector3(-2, 1, -1), 20, new Vector3(0.1f,0.3f,1)));
-            _lights.AddLight(new PointLight(new Vector3(1, 1, -1), 20, new Vector3(1,0.3f,0.1f)));
-            _lights.DataTobuffer(_intersectionShader.Handle);
-
-            _list.AddHittable(new TriangleMT(new Vector3(-1, 0, -3), new Vector3(1, 0, -3), new Vector3(0, 1, -3), false, white));
-            _list.AddHittable(new Sphere(new Vector3(0.8f, 0, -1), 0.5f, light));
-            _list.AddHittable(new Sphere(new Vector3(0, -100.5f, -1), 100f, green));
-            _list.AddHittable(new Sphere(new Vector3(-1.3f, 0.3f, -2), 0.8f, die));
-            _list.AddHittable(new Sphere(new Vector3(-0.7f, 0, -1), 0.3f, checker));
 
             // _list.AddHittable(new TriangleMT(new Vector3(-1, 0, -1), new Vector3(-1, 0.2f, -3), new Vector3(1, 0, -1), false, white));
             // _list.AddHittable(new TriangleMT(new Vector3(-1, 0.2f, -3), new Vector3(1, 0, -1), new Vector3(1, 0.2f, -3), false, white));
             //_list.AddHittable(new Sphere(new Vector3(0, 0.7f, -2), 0.5f, red));
-            _list.DataToBuffer(_intersectionShader.Handle);
+
+
+            _scene.HitList.DataToBuffer(_intersectionShader.Handle);
+            _scene.LightList.DataTobuffer(_intersectionShader.Handle);
 
             
 
@@ -132,9 +112,9 @@ namespace Dull
             SetNewCameraPosition();
 
             _intersectionShader.Use();
-            GL.Uniform1(_camera.FovLocation, _camera.FOV);
-            GL.Uniform3(_camera.LookFromLocation, _camera.LookFrom);
-            GL.Uniform3(_camera.LookAtLocation, _camera.LookAt);
+            GL.Uniform1(_scene.Camera.FovLocation, _scene.Camera.FOV);
+            GL.Uniform3(_scene.Camera.LookFromLocation, _scene.Camera.LookFrom);
+            GL.Uniform3(_scene.Camera.LookAtLocation, _scene.Camera.LookAt);
 
 
             GL.Uniform1(_misc.SeedLocation, (float)e.Time%1);
@@ -163,10 +143,10 @@ namespace Dull
         {
             _intersectionShader.Use();
             GL.Viewport(0, 0, e.Width, e.Height);
-            GL.Uniform1(_camera.ScreenWidthLocation, e.Width);
-            GL.Uniform1(_camera.ScreenHeightLocation, e.Height);
-            _camera.AspectRatio = (float)e.Width / e.Height;
-            GL.Uniform1(_camera.AspectRatioLocation, _camera.AspectRatio);
+            GL.Uniform1(_scene.Camera.ScreenWidthLocation, e.Width);
+            GL.Uniform1(_scene.Camera.ScreenHeightLocation, e.Height);
+            _scene.Camera.AspectRatio = (float)e.Width / e.Height;
+            GL.Uniform1(_scene.Camera.AspectRatioLocation, _scene.Camera.AspectRatio);
             _shader.Use();
 
             _renderQuad.UpdateTextureParams(e.Width, e.Height, (IntPtr)0);
@@ -178,7 +158,7 @@ namespace Dull
         private void SetNewCameraPosition()
         {
             if(KeyboardState.IsAnyKeyDown || KeyboardState.WasKeyDown(Keys.C))
-                _camera.UpdateCameraPosition(KeyboardState, (float)RenderTime);
+                _scene.Camera.UpdateCameraPosition(KeyboardState, (float)RenderTime);
         }
         bool isCursorGrabbed = true;
         protected override void OnKeyDown(KeyboardKeyEventArgs e)
@@ -223,14 +203,14 @@ namespace Dull
         {
             base.OnMouseMove(e);
             if(isCursorGrabbed)
-                _camera.UpdateCameraRotation(e.DeltaX, e.DeltaY);
+                _scene.Camera.UpdateCameraRotation(e.DeltaX, e.DeltaY);
         }
 
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
             base.OnMouseWheel(e);
             if(isCursorGrabbed)
-                _camera.FOV -= e.OffsetY; 
+                _scene.Camera.FOV -= e.OffsetY; 
         }
 
 
@@ -256,14 +236,14 @@ namespace Dull
             {
                 if (ImGui.TreeNode("Objects"))
                 {
-                    foreach(IHittable hittable in _list.GetHittables())
+                    foreach (IHittable hittable in _scene.HitList.GetHittables())
                     {
                         if (ImGui.TreeNode(hittable.GetOffset().ToString()))
                         {
                             Vector3 v = hittable.GetPostion();
-                            System.Numerics.Vector3 k = new System.Numerics.Vector3(v.X, v.Y, v.Z);
-                            if (ImGui.DragFloat3("Postion", ref k, 0.1f))
-                                hittable.SetPostion(new Vector3(k.X, k.Y, k.Z));
+                            System.Numerics.Vector3 objPos = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+                            if (ImGui.DragFloat3("Position", ref objPos, 0.1f))
+                                hittable.SetPostion(new Vector3(objPos.X, objPos.Y, objPos.Z));
                             ;
                             IMaterial mat = hittable.GetMaterial();
                             int type = (int)mat.GetMaterialType();
@@ -297,27 +277,28 @@ namespace Dull
                                 }
                                 mat.SetTexture(tex);
                             }
-                            switch (type) {
-                                case((int)TextureType.Solid):
-                                {
-                                    Vector3 col = tex.GetAlbedo()[0];
-                                    System.Numerics.Vector3 c = new System.Numerics.Vector3(col.X, col.Y, col.Z);
-                                    if (ImGui.ColorEdit3("Color", ref c))
-                                        tex.SetAlbedo(new Vector3[] { new Vector3(c.X, c.Y, c.Z) });
-                                    break;
-                                }
+                            switch (type)
+                            {
+                                case ((int)TextureType.Solid):
+                                    {
+                                        Vector3 col = tex.GetAlbedo()[0];
+                                        System.Numerics.Vector3 c = new System.Numerics.Vector3(col.X, col.Y, col.Z);
+                                        if (ImGui.ColorEdit3("Color", ref c))
+                                            tex.SetAlbedo(new Vector3[] { new Vector3(c.X, c.Y, c.Z) });
+                                        break;
+                                    }
                                 case ((int)TextureType.Checker):
-                                {
-                                    Vector3 odd = tex.GetAlbedo()[0];
-                                    Vector3 even = tex.GetAlbedo()[1];
-                                    System.Numerics.Vector3 c1 = new System.Numerics.Vector3(odd.X, odd.Y, odd.Z);
-                                    System.Numerics.Vector3 c2 = new System.Numerics.Vector3(even.X, even.Y, even.Z);
-                                    if (ImGui.ColorEdit3("Odd Color", ref c1) | ImGui.ColorEdit3("Even Color", ref c2))
-                                        tex.SetAlbedo(new Vector3[] { new Vector3(c1.X, c1.Y, c1.Z), new Vector3(c2.X, c2.Y, c2.Z) });
-                                    break;
-                                }
+                                    {
+                                        Vector3 odd = tex.GetAlbedo()[0];
+                                        Vector3 even = tex.GetAlbedo()[1];
+                                        System.Numerics.Vector3 c1 = new System.Numerics.Vector3(odd.X, odd.Y, odd.Z);
+                                        System.Numerics.Vector3 c2 = new System.Numerics.Vector3(even.X, even.Y, even.Z);
+                                        if (ImGui.ColorEdit3("Odd Color", ref c1) | ImGui.ColorEdit3("Even Color", ref c2))
+                                            tex.SetAlbedo(new Vector3[] { new Vector3(c1.X, c1.Y, c1.Z), new Vector3(c2.X, c2.Y, c2.Z) });
+                                        break;
+                                    }
                             }
-                            _list.ChangeHittable(hittable);
+                            _scene.HitList.ChangeHittable(hittable);
                             ImGui.TreePop();
                         }
                     }
@@ -325,6 +306,37 @@ namespace Dull
                     ImGui.TreePop();
                 }
 
+                ImGui.End();
+            }
+
+            if (ImGui.Begin("Lights"))
+            {
+                if (ImGui.TreeNode("Lights"))
+                {
+                    foreach (ILight light in _scene.LightList.GetLights())
+                    {
+                        if (ImGui.TreeNode(light.GetOffset().ToString()))
+                        {
+                            Vector3 v = light.GetPostion();
+                            System.Numerics.Vector3 lightPos = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+                            if (ImGui.DragFloat3("Position", ref lightPos, 0.1f))
+                                light.SetPostion(new Vector3(lightPos.X, lightPos.Y, lightPos.Z));
+
+                            Vector3 col = light.GetColor();
+                            System.Numerics.Vector3 c = new System.Numerics.Vector3(col.X, col.Y, col.Z);
+                            if (ImGui.ColorEdit3("Color", ref c))
+                                light.SetColor(new Vector3(c.X, c.Y, c.Z));
+
+                            int intens = light.GetIntensity();
+                            if (ImGui.SliderInt("Intensity", ref intens, 0, 50))
+                                light.SetIntensity(intens);
+
+                            _scene.LightList.ChangeLight(light);
+                            ImGui.TreePop();
+                        }
+                    }
+                    ImGui.TreePop();
+                }
                 ImGui.End();
             }
         }

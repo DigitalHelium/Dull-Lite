@@ -54,13 +54,42 @@ namespace Dull.Lights
         public Vector4[] GetStd140Data()
         {
             SetStd140Data();
-            Console.WriteLine(GetInfo());
             return _data;
         }
 
         public void SetOffset(int offset)
         {
             _byteOffset = offset;
+        }
+
+        public Vector3 GetPostion()
+        {
+            return _position;
+        }
+
+        public void SetPostion(Vector3 position)
+        {
+            _position = position;
+        }
+
+        public Vector3 GetColor()
+        {
+            return _color;
+        }
+
+        public void SetColor(Vector3 color)
+        {
+            _color = color;
+        }
+
+        public int GetIntensity()
+        {
+            return _intensity;
+        }
+
+        public void SetIntensity(int intensity)
+        {
+            _intensity = intensity;
         }
     }
 }

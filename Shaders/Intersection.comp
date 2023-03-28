@@ -392,7 +392,7 @@ bool get_color(HitRecord rec,inout vec3 color,inout vec3 emitted,inout vec3 refl
 				refl*=1-rec.mat.fuzz;
 				HitRecord backgorund_rec = check_intersections(ray, INFINITY);
 				if(!backgorund_rec.hit_anything)
-					color+= background == 0? refl*attenuation : refl*background*attenuation;
+					color+= refl*background*attenuation;
 				else
 					color+= i == 0? attenuation:color*attenuation;
 				return true;
@@ -400,7 +400,7 @@ bool get_color(HitRecord rec,inout vec3 color,inout vec3 emitted,inout vec3 refl
 			if(rec.mat.type == DIELECTRIC){
 				HitRecord backgorund_rec = check_intersections(ray,INFINITY);
 				if(!backgorund_rec.hit_anything)
-					color+=background == 0 ?attenuation : background*attenuation;
+					color+=background*attenuation;
 				else
 					color+= i == 0? attenuation:color*attenuation;
 				return true;
@@ -410,9 +410,12 @@ bool get_color(HitRecord rec,inout vec3 color,inout vec3 emitted,inout vec3 refl
 					
 				return true;
 			}
-
-			color+=refl*light(color,rec);
-			return true;
+			if(rec.mat.type == LAMBERTIAN){
+					color+=refl*light(color,rec);
+					
+				return true;
+			}
+			
 		}
 		else{
 			color= vec3(0);

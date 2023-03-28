@@ -41,6 +41,15 @@ namespace Dull.Lights
                 _buf.AttachSubData(tempData, light.GetOffset());
             }
         }
+        public void ChangeLight(ILight light)
+        {
+            Vector4[] tempData = light.GetStd140Data();
+            _buf.AttachSubData(tempData, light.GetOffset());
+        }
+        public List<ILight> GetLights()
+        {
+            return _lights;
+        }
 
         private void CalcSizes()
         {
