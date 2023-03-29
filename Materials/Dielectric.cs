@@ -18,7 +18,14 @@ namespace Dull.Materials
         {
             _tex = tex;
             _ir = ir;
-            _data = new Vector4[_objectSize + tex.GetSizeInVec4()];
+            _data = new Vector4[_objectSize + _tex.GetSizeInVec4()];
+            SetStd140Data();
+        }
+        public Dielectric(ITexture tex)
+        {
+            _tex = tex;
+            _ir = 1.5f;
+            _data = new Vector4[_objectSize + _tex.GetSizeInVec4()];
             SetStd140Data();
         }
         public MaterialType GetMaterialType()
@@ -45,12 +52,32 @@ namespace Dull.Materials
 
         public Vector4[] GetSTD140Data()
         {
-
+            SetStd140Data();
             return _data;
         }
         public string GetInfo()
         {
             return $"Material:Dielectric IR: {_data[0].Z}\n  {_tex.GetInfo()}";
+        }
+
+        float? IMaterial.GetParam()
+        {
+            return _ir;
+        }
+
+        public void SetParam(float? param)
+        {
+            _ir = param.Value;
+        }
+
+        public ITexture GetTexture()
+        {
+            return _tex;
+        }
+
+        public void SetTexture(ITexture tex)
+        {
+            _tex = tex;
         }
     }
 }

@@ -67,7 +67,7 @@ struct Sphere{
 	Material mat;
 }; 
 
-layout(std140, binding = 0) buffer Spheres{
+layout(std140, binding = 0) readonly buffer Spheres{
 	int sphere_size; // 4 -> 16 bytes
 	Sphere spheres[];
 }; 
@@ -80,7 +80,7 @@ struct TriangleMT{
 	Material mat;
 };
 
-layout(std140, binding = 1) buffer TrianglesMT{
+layout(std140, binding = 1) readonly buffer TrianglesMT{
 	int trianglemt_size; // 4 -> 16 bytes
 	TriangleMT trianglesmt[];
 };
@@ -91,7 +91,7 @@ struct PointLight{
 	vec3 color;
 };
 
-layout(std140, binding = 2) buffer PointLights{
+layout(std140, binding = 2) readonly buffer PointLights{
 	int plight_size; // 4 -> 16 bytes
 	PointLight pointlights[];
 };
@@ -339,7 +339,7 @@ vec3 material_emit(HitRecord rec){
 		return vec3(0);
 }
 
-void get_direction(inout PointLight light, vec3 p,out float light_distance, inout vec3 light_direction){
+void get_direction(PointLight light, vec3 p,out float light_distance, out vec3 light_direction){
 	light_direction = p-light.position;
 	light_distance = length(light_direction);
 
@@ -347,7 +347,7 @@ void get_direction(inout PointLight light, vec3 p,out float light_distance, inou
 }
 
 //Creates shadow ray and check if it intersect with any object 
-bool check_shadow(HitRecord rec,inout PointLight light, out float dist,inout vec3 light_direction){
+bool check_shadow(HitRecord rec, PointLight light, out float dist,out vec3 light_direction){
 	int i=0;
 	get_direction(light, rec.p, dist,light_direction);
 	Ray shr = Ray(rec.p+rec.normal*0.001,-light_direction+hash3(g_seed)*0.01);
@@ -389,16 +389,20 @@ bool get_color(HitRecord rec,inout vec3 color,inout vec3 emitted,inout vec3 refl
 		if(scatter(ray,rec, attenuation, scattered)){
 			ray = scattered;
 			if(rec.mat.type == METAL){
-				refl*=0.8;
+				refl*=1-rec.mat.fuzz;
 				HitRecord backgorund_rec = check_intersections(ray, INFINITY);
 				if(!backgorund_rec.hit_anything)
-					color+=refl*background;
+					color+= refl*background*attenuation;
+				else
+					color+= i == 0? attenuation:color*attenuation;
 				return true;
 			}
 			if(rec.mat.type == DIELECTRIC){
 				HitRecord backgorund_rec = check_intersections(ray,INFINITY);
 				if(!backgorund_rec.hit_anything)
-					color+=background;
+					color+=background*attenuation;
+				else
+					color+= i == 0? attenuation:color*attenuation;
 				return true;
 			}
 			if(rec.mat.type == TRANSPARENT){
@@ -406,9 +410,12 @@ bool get_color(HitRecord rec,inout vec3 color,inout vec3 emitted,inout vec3 refl
 					
 				return true;
 			}
-
-			color+=refl*light(color,rec);
-			return true;
+			if(rec.mat.type == LAMBERTIAN){
+					color+=refl*light(color,rec);
+					
+				return true;
+			}
+			
 		}
 		else{
 			color= vec3(0);

@@ -11,13 +11,14 @@ namespace Dull.Objects
         private Vector3 _n;
         private Vector3 _v2v0, _v1v0;
         private bool _isOneSided;
+        private Vector3 _postion;
 
         private static int _objectSize = 3;//in Vector4
         private HittableType _type = HittableType.TriangleMT;
         Vector4[] _data;
         private int _byteOffset = -1;
         private IMaterial _mat;
-
+        private bool _isUpdated = true;
         public TriangleMT(Vector3 v0, Vector3 v1, Vector3 v2, bool isOneSided, IMaterial mat)
         {
             _v0 = v0;
@@ -25,6 +26,7 @@ namespace Dull.Objects
             _v2 = v2;
             _v2v0 = v2 - v0;
             _v1v0 = v1 - v0;
+            _postion = new Vector3((v0.X + v1.X + v2.X) / 3, (v0.Y + v1.Y + v2.Y) / 3, (v0.Z + v1.Z + v2.Z) / 3);
             _n = Vector3.Cross(_v2v0, _v1v0);
             _isOneSided = isOneSided;
             _mat = mat;
@@ -41,15 +43,18 @@ namespace Dull.Objects
         public Vector4[] GetStd140Data()
         {
             SetStd140Data();
-            Console.WriteLine(GetInfo());
             return _data;
         }
         private void SetStd140Data()
         {
-            _data[0].Xyz = _v0;
-            _data[0].W = _isOneSided ? 1.0f : 0.0f;
-            _data[1].Xyz = _v2v0;
-            _data[2].Xyz = _v1v0;
+            if (_isUpdated)
+            {
+                _data[0].Xyz = _v0;
+                _data[0].W = _isOneSided ? 1.0f : 0.0f;
+                _data[1].Xyz = _v2v0;
+                _data[2].Xyz = _v1v0;
+                _isUpdated = !_isUpdated;
+            }
             Vector4[] matData = _mat.GetSTD140Data();
             for (int i = _objectSize; i < _data.Length; i++)
                 _data[i] = matData[i - _objectSize];
@@ -71,6 +76,31 @@ namespace Dull.Objects
         public string GetInfo()
         {
             return $"Object:TriangleMT Position: v0: {_data[0]}, v2v0: {_data[1]}, v1v0: {_data[2]}\n {_mat.GetInfo()}";
+        }
+
+        public Vector3 GetPostion()
+        {
+            return _postion;
+        }
+
+        public void SetPostion(Vector3 position)
+        {
+            Vector3 posOffset = _postion - position;
+            _v0 = _v0 + posOffset;
+            _v1 = _v1 + posOffset;
+            _v2 = _v2 + posOffset;
+            _v2v0 = _v2 - _v0;
+            _v1v0 = _v1 - _v0;
+            _postion = position;
+            _isUpdated = !_isUpdated;
+        }
+        public IMaterial GetMaterial()
+        {
+            return _mat;
+        }
+        public void SetMaterial(IMaterial material)
+        {
+            _mat = material;
         }
     }
 }

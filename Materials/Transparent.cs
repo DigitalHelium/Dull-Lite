@@ -18,6 +18,13 @@ namespace Dull.Materials
             _data = new Vector4[_objectSize + tex.GetSizeInVec4()];
             SetStd140Data();
         }
+        public Transparent(ITexture tex)
+        {
+            _tex = tex;
+            _transparency = 1.1f;
+            _data = new Vector4[_objectSize + _tex.GetSizeInVec4()];
+            SetStd140Data();
+        }
         public MaterialType GetMaterialType()
         {
             return _type;
@@ -42,12 +49,28 @@ namespace Dull.Materials
 
         public Vector4[] GetSTD140Data()
         {
-
+            SetStd140Data();
             return _data;
         }
         public string GetInfo()
         {
             return $"Material:Transparent Transparency: {_data[0].W}\n  {_tex.GetInfo()}";
+        }
+        public float? GetParam()
+        {
+            return _transparency;
+        }
+        public void SetParam(float? param)
+        {
+            _transparency = param.Value;
+        }
+        public ITexture GetTexture()
+        {
+            return _tex;
+        }
+        public void SetTexture(ITexture tex)
+        {
+            _tex = tex;
         }
     }
 }

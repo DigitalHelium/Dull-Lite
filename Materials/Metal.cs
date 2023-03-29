@@ -21,6 +21,13 @@ namespace Dull.Materials
             _data = new Vector4[_objectSize + tex.GetSizeInVec4()];
             SetStd140Data();
         }
+        public Metal(ITexture tex)
+        {
+            _tex = tex;
+            _fuzz = 0;
+            _data = new Vector4[_objectSize + _tex.GetSizeInVec4()];
+            SetStd140Data();
+        }
         public MaterialType GetMaterialType()
         {
             return _type;
@@ -45,12 +52,28 @@ namespace Dull.Materials
 
         public Vector4[] GetSTD140Data()
         {
-            
+            SetStd140Data();
             return _data;
         }
         public string GetInfo()
         {
             return $"Material:Metal Fuzz: {_data[0].Y}\n  {_tex.GetInfo()}";
+        }
+        public float? GetParam()
+        {
+            return _fuzz;
+        }
+        public void SetParam(float? param)
+        {
+            _fuzz = param.Value;
+        }
+        public ITexture GetTexture()
+        {
+            return _tex;
+        }
+        public void SetTexture(ITexture tex)
+        {
+            _tex = tex;
         }
     }
 }

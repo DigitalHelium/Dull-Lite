@@ -16,6 +16,20 @@ namespace Dull.ObjectTexture
             _data = new Vector4[_objectSize];
             SetStd140Data();
         }
+        public CheckerPattern()
+        {
+            _odd = new Vector3(0);
+            _even = new Vector3(1);
+            _data = new Vector4[_objectSize];
+            SetStd140Data();
+        }
+        public CheckerPattern(Vector3 albedo)
+        {
+            _odd = albedo;
+            _even = new Vector3(1);
+            _data = new Vector4[_objectSize];
+            SetStd140Data();
+        }
         private void SetStd140Data()
         {
             _data[0].Xyz = _odd;
@@ -39,12 +53,23 @@ namespace Dull.ObjectTexture
 
         public Vector4[] GetSTD140Data()
         {
+            SetStd140Data();
             return _data;
         }
 
         public TextureType GetTextureType()
         {
             return _type;
+        }
+        public Vector3[] GetAlbedo()
+        {
+            return new Vector3[] { _odd,_even };
+        }
+
+        public void SetAlbedo(params Vector3[] albedo)
+        {
+            _odd =  albedo[0];
+            _even = albedo[1];
         }
     }
 }

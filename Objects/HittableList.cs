@@ -56,6 +56,15 @@ namespace Dull.Objects
             
 
         }
+        public void ChangeHittable(IHittable hittable)
+        {
+            Vector4[] tempData = hittable.GetStd140Data();
+            _buf.AttachSubData(tempData, hittable.GetOffset());
+        }
+        public List<IHittable> GetHittables()
+        {
+            return _hitList;
+        }
         private void CalcSizes()
         {
             _sphereSizeInBytes = GetOffsets(HittableType.Sphere, _sphereSizeInBytes, out _sphereCount);
@@ -77,5 +86,6 @@ namespace Dull.Objects
             }
             return objOffset-offset+SIZE_OFFSET;
         }
+
     }
 }

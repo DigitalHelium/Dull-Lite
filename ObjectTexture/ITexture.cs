@@ -10,5 +10,7 @@ namespace Dull.ObjectTexture
         TextureType GetTextureType();
         Vector4[] GetSTD140Data();
         string GetInfo();
+        Vector3[] GetAlbedo();
+        void SetAlbedo(params Vector3[] albedo);
     }
 }
