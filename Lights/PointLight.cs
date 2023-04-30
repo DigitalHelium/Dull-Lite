@@ -40,7 +40,10 @@ namespace Dull.Lights
         {
             return $"Light:PointLight Position:{_data[0]} Intensity: {_intensity} Color: {_color}";
         }
-
+        public string GetName()
+        {
+            return "Point Light";
+        }
         public int GetOffset()
         {
             return _byteOffset;

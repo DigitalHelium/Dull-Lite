@@ -12,5 +12,12 @@ namespace Dull.Scenes
         public LightList LightList { get => _lights; set => _lights = value; }
         public Camera Camera { get => _camera; set => _camera = value; }
 
+        public void UpdateData(int shaderHandle)
+        {
+            Camera.UpdateParamLocations(shaderHandle);
+            HitList.DataToBuffer(shaderHandle);
+            LightList.DataTobuffer(shaderHandle);
+        }
+
     }
 }

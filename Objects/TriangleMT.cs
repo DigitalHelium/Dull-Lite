@@ -77,7 +77,10 @@ namespace Dull.Objects
         {
             return $"Object:TriangleMT Position: v0: {_data[0]}, v2v0: {_data[1]}, v1v0: {_data[2]}\n {_mat.GetInfo()}";
         }
-
+        public string GetName()
+        {
+            return "Triangle";
+        }
         public Vector3 GetPostion()
         {
             return _postion;

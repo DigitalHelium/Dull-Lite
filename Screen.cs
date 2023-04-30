@@ -17,14 +17,14 @@ namespace Dull
 {
     class Screen:GameWindow
     {
-        ImGuiController _controller;
+        private ImGuiController _controller;
 
         private Shader _shader;
         private ComputeShader _intersectionShader;
 
         private Texture _renderQuad;
 
-        BaseScene _scene;
+        private BaseScene _scene;
 
         private MiscUniforms _misc;
 
@@ -42,6 +42,8 @@ namespace Dull
             0, 1, 3,   // first triangle
             1, 2, 3    // second triangle
         };
+        private bool _isObjectWindowOpened = true;
+        private bool _isLightsWindowOpened = true;
 
         public Screen(int width, int height) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height)}) { }
        
@@ -71,7 +73,7 @@ namespace Dull
             _intersectionShader = new ComputeShader(@"..\..\..\Shaders\Intersection.comp");
             _intersectionShader.Use();
 
-            _scene = new GrassScene((float)Size.X / Size.Y);
+            _scene = new RoomScene((float)Size.X / Size.Y);
             _scene.Camera.UpdateParamLocations(_intersectionShader.Handle);
 
             _misc = new MiscUniforms(0, 1, 16);
@@ -79,18 +81,11 @@ namespace Dull
             GL.Uniform1(_misc.ModeLocation, _misc.Mode);
             GL.Uniform1(_misc.MaxSamplesLocation, _misc.MaxSamples);
             GL.Uniform1(_misc.MaxDepthLocation, _misc.MaxDepth);
-
-            
-
-            // _list.AddHittable(new TriangleMT(new Vector3(-1, 0, -1), new Vector3(-1, 0.2f, -3), new Vector3(1, 0, -1), false, white));
-            // _list.AddHittable(new TriangleMT(new Vector3(-1, 0.2f, -3), new Vector3(1, 0, -1), new Vector3(1, 0.2f, -3), false, white));
-            //_list.AddHittable(new Sphere(new Vector3(0, 0.7f, -2), 0.5f, red));
-
+    
 
             _scene.HitList.DataToBuffer(_intersectionShader.Handle);
             _scene.LightList.DataTobuffer(_intersectionShader.Handle);
 
-            
 
             _renderQuad = new Texture(Size.X, Size.Y, PixelInternalFormat.Rgb32f, PixelFormat.Rgba, (IntPtr)0,4);
 
@@ -98,12 +93,13 @@ namespace Dull
         }
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
-            _controller.Update(this, (float)args.Time);//new
+            //_controller.Update(this, (float)args.Time);//new
             base.OnUpdateFrame(args);
         }
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
+            _controller.Update(this, (float)e.Time);
 
             if (RenderTime < 0.6)
                 Title = (int)(1 / RenderTime) + " FPS";
@@ -192,8 +188,6 @@ namespace Dull
                 _misc.Mode = 1;
             if (e.Key == Keys.D3)
                 _misc.Mode = 2;
-            if (e.Key == Keys.D4)
-                _misc.MaxSamples = 128;
             _intersectionShader.Use();
             GL.Uniform1(_misc.ModeLocation, _misc.Mode);
             GL.Uniform1(_misc.MaxSamplesLocation, _misc.MaxSamples);
@@ -216,7 +210,8 @@ namespace Dull
 
         void OnDrawGUI()
         {
-            ImGui.ShowDemoWindow();
+
+            //ImGui.ShowDemoWindow();
 
             if (ImGui.BeginMainMenuBar())
             {
@@ -229,113 +224,163 @@ namespace Dull
 
                     ImGui.EndMenu();
                 }
+                if (ImGui.BeginMenu("Windows"))
+                {
+                    ImGui.Checkbox("Objects", ref _isObjectWindowOpened);
+                    ImGui.Checkbox("Lights", ref _isLightsWindowOpened);
+
+                    ImGui.EndMenu();
+                }
+                if (ImGui.BeginMenu("Scene"))
+                {
+                    if (ImGui.MenuItem("Grass Scene"))
+                    {
+                        _intersectionShader.Use();
+                        _scene = new GrassScene((float)Size.X / Size.Y);
+                        _scene.UpdateData(_intersectionShader.Handle);
+                    }
+                    if (ImGui.MenuItem("Room Scene"))
+                    {
+                        _intersectionShader.Use();
+                        _scene = new RoomScene((float)Size.X / Size.Y);
+                        _scene.UpdateData(_intersectionShader.Handle);
+                    }
+
+                    ImGui.EndMenu();
+                }
+
+                if (ImGui.BeginMenu("Render Settings"))
+                {
+                    if (ImGui.BeginMenu("Render Mode"))
+                    {
+                        if (ImGui.MenuItem("Full Render","1"))
+                        {
+                            _misc.Mode = 0;
+                        }
+                        if (ImGui.MenuItem("Depth Map","2"))
+                        {
+                            _misc.Mode = 1;
+                        }
+                        if (ImGui.MenuItem("Normal Map", "3"))
+                        {
+                            _misc.Mode = 2;
+                        }
+                        _intersectionShader.Use();
+                        _misc.UpdateParams();
+                        ImGui.EndMenu();
+                        
+                    }
+                    int max_samples = _misc.MaxSamples;
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.Text("Max Samples"); ImGui.SameLine();
+                    ImGui.PushItemWidth(100);
+                    if (ImGui.InputInt("", ref max_samples, 1, 128))
+                    {
+                        _misc.MaxSamples = max_samples;
+                        _intersectionShader.Use();
+                        _misc.UpdateParams();
+                    }
+
+                    ImGui.EndMenu();
+                }
                 ImGui.EndMainMenuBar();
             }
 
-            if (ImGui.Begin("Objects"))
+            if (_isObjectWindowOpened && ImGui.Begin("Objects",ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoNavInputs |ImGuiWindowFlags.NoFocusOnAppearing))
             {
-                if (ImGui.TreeNode("Objects"))
+                foreach (IHittable hittable in _scene.HitList.GetHittables())
                 {
-                    foreach (IHittable hittable in _scene.HitList.GetHittables())
+                    if (ImGui.TreeNode(hittable.GetName() + " " + hittable.GetOffset().ToString()))
                     {
-                        if (ImGui.TreeNode(hittable.GetOffset().ToString()))
-                        {
-                            Vector3 v = hittable.GetPostion();
-                            System.Numerics.Vector3 objPos = new System.Numerics.Vector3(v.X, v.Y, v.Z);
-                            if (ImGui.DragFloat3("Position", ref objPos, 0.1f))
-                                hittable.SetPostion(new Vector3(objPos.X, objPos.Y, objPos.Z));
-                            ;
-                            IMaterial mat = hittable.GetMaterial();
-                            int type = (int)mat.GetMaterialType();
-                            if (ImGui.SliderInt("Material", ref type, 0, 4, mat.GetMaterialType().ToString()))
-                            {
-                                switch (type)
-                                {
-                                    case ((int)MaterialType.Dielectric): mat = new Dielectric(mat.GetTexture()); break;
-                                    case ((int)MaterialType.DiffuseLight): mat = new DiffuseLight(mat.GetTexture()); break;
-                                    case ((int)MaterialType.Lambertian): mat = new Lambertian(mat.GetTexture()); break;
-                                    case ((int)MaterialType.Metal): mat = new Metal(mat.GetTexture()); break;
-                                    case ((int)MaterialType.Transparent): mat = new Transparent(mat.GetTexture()); break;
-                                }
-                                hittable.SetMaterial(mat);
-                            }
-                            if (type == (int)MaterialType.Dielectric || type == (int)MaterialType.Metal || type == (int)MaterialType.Transparent)
-                            {
-                                float param = mat.GetParam().Value;
-                                if (ImGui.DragFloat("param", ref param, 0.005f))
-                                    mat.SetParam(param);
-                            }
+                        Vector3 v = hittable.GetPostion();
+                        System.Numerics.Vector3 objPos = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+                        if (ImGui.DragFloat3("Position", ref objPos, 0.1f))
+                            hittable.SetPostion(new Vector3(objPos.X, objPos.Y, objPos.Z));
 
-                            ITexture tex = mat.GetTexture();
-                            type = (int)tex.GetTextureType();
-                            if (ImGui.SliderInt("Texture", ref type, 10, 11, tex.GetTextureType().ToString()))
-                            {
-                                switch (type)
-                                {
-                                    case ((int)TextureType.Solid): tex = new SolidColor(tex.GetAlbedo()[0]); break;
-                                    case ((int)TextureType.Checker): tex = new CheckerPattern(tex.GetAlbedo()[0]); break;
-                                }
-                                mat.SetTexture(tex);
-                            }
+                        IMaterial mat = hittable.GetMaterial();
+                        int type = (int)mat.GetMaterialType();
+                        if (ImGui.SliderInt("Material", ref type, 0, 4, mat.GetMaterialType().ToString()))
+                        {
                             switch (type)
                             {
-                                case ((int)TextureType.Solid):
-                                    {
-                                        Vector3 col = tex.GetAlbedo()[0];
-                                        System.Numerics.Vector3 c = new System.Numerics.Vector3(col.X, col.Y, col.Z);
-                                        if (ImGui.ColorEdit3("Color", ref c))
-                                            tex.SetAlbedo(new Vector3[] { new Vector3(c.X, c.Y, c.Z) });
-                                        break;
-                                    }
-                                case ((int)TextureType.Checker):
-                                    {
-                                        Vector3 odd = tex.GetAlbedo()[0];
-                                        Vector3 even = tex.GetAlbedo()[1];
-                                        System.Numerics.Vector3 c1 = new System.Numerics.Vector3(odd.X, odd.Y, odd.Z);
-                                        System.Numerics.Vector3 c2 = new System.Numerics.Vector3(even.X, even.Y, even.Z);
-                                        if (ImGui.ColorEdit3("Odd Color", ref c1) | ImGui.ColorEdit3("Even Color", ref c2))
-                                            tex.SetAlbedo(new Vector3[] { new Vector3(c1.X, c1.Y, c1.Z), new Vector3(c2.X, c2.Y, c2.Z) });
-                                        break;
-                                    }
+                                case ((int)MaterialType.Dielectric): mat = new Dielectric(mat.GetTexture()); break;
+                                case ((int)MaterialType.DiffuseLight): mat = new DiffuseLight(mat.GetTexture()); break;
+                                case ((int)MaterialType.Lambertian): mat = new Lambertian(mat.GetTexture()); break;
+                                case ((int)MaterialType.Metal): mat = new Metal(mat.GetTexture()); break;
+                                case ((int)MaterialType.Transparent): mat = new Transparent(mat.GetTexture()); break;
                             }
-                            _scene.HitList.ChangeHittable(hittable);
-                            ImGui.TreePop();
+                            hittable.SetMaterial(mat);
                         }
-                    }
+                        if (type == (int)MaterialType.Dielectric || type == (int)MaterialType.Metal || type == (int)MaterialType.Transparent)
+                        {
+                            float param = mat.GetParam().Value;
+                            if (ImGui.DragFloat("param", ref param, 0.005f))
+                                mat.SetParam(param);
+                        }
 
-                    ImGui.TreePop();
+                        ITexture tex = mat.GetTexture();
+                        type = (int)tex.GetTextureType();
+                        if (ImGui.SliderInt("Texture", ref type, 10, 11, tex.GetTextureType().ToString()))
+                        {
+                            switch (type)
+                            {
+                                case ((int)TextureType.Solid): tex = new SolidColor(tex.GetAlbedo()[0]); break;
+                                case ((int)TextureType.Checker): tex = new CheckerPattern(tex.GetAlbedo()[0]); break;
+                            }
+                            mat.SetTexture(tex);
+                        }
+                        switch (type)
+                        {
+                            case ((int)TextureType.Solid):
+                                {
+                                    Vector3 col = tex.GetAlbedo()[0];
+                                    System.Numerics.Vector3 c = new System.Numerics.Vector3(col.X, col.Y, col.Z);
+                                    if (ImGui.ColorEdit3("Color", ref c))
+                                        tex.SetAlbedo(new Vector3[] { new Vector3(c.X, c.Y, c.Z) });
+                                    break;
+                                }
+                            case ((int)TextureType.Checker):
+                                {
+                                    Vector3 odd = tex.GetAlbedo()[0];
+                                    Vector3 even = tex.GetAlbedo()[1];
+                                    System.Numerics.Vector3 c1 = new System.Numerics.Vector3(odd.X, odd.Y, odd.Z);
+                                    System.Numerics.Vector3 c2 = new System.Numerics.Vector3(even.X, even.Y, even.Z);
+                                    if (ImGui.ColorEdit3("Odd Color", ref c1) | ImGui.ColorEdit3("Even Color", ref c2))
+                                        tex.SetAlbedo(new Vector3[] { new Vector3(c1.X, c1.Y, c1.Z), new Vector3(c2.X, c2.Y, c2.Z) });
+                                    break;
+                                }
+                        }
+                        _scene.HitList.ChangeHittable(hittable);
+                        ImGui.TreePop();
+                    }
                 }
 
                 ImGui.End();
             }
 
-            if (ImGui.Begin("Lights"))
+            if (_isLightsWindowOpened && ImGui.Begin("Lights", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoNavInputs | ImGuiWindowFlags.NoFocusOnAppearing))
             {
-                if (ImGui.TreeNode("Lights"))
+                foreach (ILight light in _scene.LightList.GetLights())
                 {
-                    foreach (ILight light in _scene.LightList.GetLights())
+                    if (ImGui.TreeNode(light.GetName()+ " " + light.GetOffset().ToString()))
                     {
-                        if (ImGui.TreeNode(light.GetOffset().ToString()))
-                        {
-                            Vector3 v = light.GetPostion();
-                            System.Numerics.Vector3 lightPos = new System.Numerics.Vector3(v.X, v.Y, v.Z);
-                            if (ImGui.DragFloat3("Position", ref lightPos, 0.1f))
-                                light.SetPostion(new Vector3(lightPos.X, lightPos.Y, lightPos.Z));
+                        Vector3 v = light.GetPostion();
+                        System.Numerics.Vector3 lightPos = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+                        if (ImGui.DragFloat3("Position", ref lightPos, 0.1f))
+                            light.SetPostion(new Vector3(lightPos.X, lightPos.Y, lightPos.Z));
 
-                            Vector3 col = light.GetColor();
-                            System.Numerics.Vector3 c = new System.Numerics.Vector3(col.X, col.Y, col.Z);
-                            if (ImGui.ColorEdit3("Color", ref c))
-                                light.SetColor(new Vector3(c.X, c.Y, c.Z));
+                        Vector3 col = light.GetColor();
+                        System.Numerics.Vector3 c = new System.Numerics.Vector3(col.X, col.Y, col.Z);
+                        if (ImGui.ColorEdit3("Color", ref c))
+                            light.SetColor(new Vector3(c.X, c.Y, c.Z));
 
-                            int intens = light.GetIntensity();
-                            if (ImGui.SliderInt("Intensity", ref intens, 0, 50))
-                                light.SetIntensity(intens);
+                        int intens = light.GetIntensity();
+                        if (ImGui.SliderInt("Intensity", ref intens, 0, 50))
+                            light.SetIntensity(intens);
 
-                            _scene.LightList.ChangeLight(light);
-                            ImGui.TreePop();
-                        }
+                        _scene.LightList.ChangeLight(light);
+                        ImGui.TreePop();
                     }
-                    ImGui.TreePop();
                 }
                 ImGui.End();
             }

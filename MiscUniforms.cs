@@ -26,6 +26,11 @@ namespace Dull
             _maxDepthLocation = GL.GetUniformLocation(shaderHandle, "max_depth");
 
         }
+        public void UpdateParams()
+        {
+            GL.Uniform1(ModeLocation, Mode);
+            GL.Uniform1(MaxSamplesLocation, MaxSamples);
+        }
         public int SeedLocation { get => _seedLocation; }
         public int ModeLocation { get => _modeLocation; }
         public int MaxSamplesLocation { get => _maxSamplesLocation; }

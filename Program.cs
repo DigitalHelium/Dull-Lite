@@ -9,6 +9,8 @@ namespace Dull
             using (Screen scrn = new Screen(1600, 1200))
             {
                 scrn.CursorState = CursorState.Grabbed;
+                scrn.VSync = VSyncMode.On;
+                scrn.RenderFrequency = 30.0f;
                 scrn.Run();
             }
         }

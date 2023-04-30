@@ -65,6 +65,10 @@ namespace Dull.Objects
         {
             return $"Object:Sphere Position:{_data[0]}\n {_mat.GetInfo()}";
         }
+        public string GetName()
+        {
+            return "Sphere";
+        }
 
         public Vector3 GetPostion()
         {

@@ -1,31 +1,4 @@
 ﻿#version 430 core
-/*
-struct Ray{
-	vec4 origin;
-	vec4 direction;
-};
-
-layout(std140, binding = 0) buffer Rays{
-	Ray rays[];
-};
-
-struct Material{
-	vec3 albedo;
-	float type;
-}; 
-
-struct HitRecord{
-	vec3 p;
-	bool hit_anything;
-	vec3 normal;
-	float t;
-	Material mat;
-};
-
-layout(std140, binding = 1) buffer Records{
-	HitRecord records[];
-};
- uniform int image_width;*/
 
 layout(location=0) out vec4 FragColor;
 uniform sampler2D renderTexture;

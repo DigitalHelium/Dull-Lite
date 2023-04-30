@@ -56,6 +56,10 @@ namespace Dull.Objects
             
 
         }
+        public void ClearBuffer()
+        {
+            _buf.ClearData();
+        }
         public void ChangeHittable(IHittable hittable)
         {
             Vector4[] tempData = hittable.GetStd140Data();

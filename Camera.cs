@@ -30,6 +30,16 @@ namespace Dull
         private int _lookFromLocation;
         private int _lookAtLocation;
 
+        public Camera(float aspectRatio, float vfov, Vector3 lookFrom, float speed)
+        {
+            _aspectRatio = aspectRatio;
+            _vfov = vfov;
+            _lookFrom = lookFrom;
+            _front = new Vector3(0, 0, -1);
+            _right = Vector3.Cross(_front, _vup);
+            _lookAt = lookFrom + _front;
+            _speed = speed;
+        }
         public Camera(float aspectRatio, float vfov, Vector3 lookFrom)
         {
             _aspectRatio = aspectRatio;
@@ -127,5 +137,6 @@ namespace Dull
         public Vector3 Front { get => _front; set { _front = value; _right = Vector3.Cross(_front, _vup); } }
         public Vector3 Right { get => _right; }
         public float Sensitivity { get => _sensitivity; set => _sensitivity = value; }
+        public float Speed { get => _speed; set => _speed = value; }
     }
 }
