@@ -270,13 +270,30 @@ namespace Dull
                         ImGui.EndMenu();
                         
                     }
-                    int max_samples = _misc.MaxSamples;
+                    int maxSamples= _misc.MaxSamples;
                     ImGui.AlignTextToFramePadding();
                     ImGui.Text("Max Samples"); ImGui.SameLine();
                     ImGui.PushItemWidth(100);
-                    if (ImGui.InputInt("", ref max_samples, 1, 128))
+                    if (ImGui.InputInt("", ref maxSamples, 1, 128))
                     {
-                        _misc.MaxSamples = max_samples;
+                        _misc.MaxSamples = maxSamples;
+                        _intersectionShader.Use();
+                        _misc.UpdateParams();
+                    }
+                    int maxDepth = _misc.MaxDepth;
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.Text("Max Depth"); ImGui.SameLine();
+                    ImGui.PushItemWidth(100);
+                    if (ImGui.InputInt(" ", ref maxDepth,1,128))
+                    {
+                        _misc.MaxDepth = maxDepth;
+                        _intersectionShader.Use();
+                        _misc.UpdateParams();
+                    }
+                    bool isBackground = _misc.IsBackground;
+                    if(ImGui.Checkbox("Background", ref isBackground))
+                    {
+                        _misc.IsBackground = isBackground;
                         _intersectionShader.Use();
                         _misc.UpdateParams();
                     }

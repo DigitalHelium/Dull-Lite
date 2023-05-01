@@ -26,6 +26,8 @@ uniform int max_depth;
 uniform int max_samples; 
 uniform int mode;
 
+uniform bool is_background;
+
 uniform float seed;//for RNG
 float g_seed = 0.0;
 
@@ -275,10 +277,10 @@ vec3 tex_color(HitRecord rec){
 		return rec.mat.tex.albedo1;
 	}
 	if(rec.mat.tex.type == CHECKER){
-		//float sines = sin(10 * rec.p.x) *  sin(10 * rec.p.y) * sin(10 * rec.p.z); add object type
-		int u = int(round(rec.u*50));
-		int v = int(round(rec.v*25));
-		if((u+v)%2==0)
+		float sines = sin(10 * rec.p.x) *  sin(10 * rec.p.y) * sin(10 * rec.p.z);// add object type
+		//int u = int(round(rec.u*50));
+		//int v = int(round(rec.v*25));
+		if(sines<0)
 			return rec.mat.tex.albedo1;
 		else
 			return rec.mat.tex.albedo2;
@@ -443,7 +445,8 @@ void trace_color(inout vec4 out_pixel){
 		g_seed+=0.01;
 
 		Ray ray = generate_ray(true);
-		//background = get_sky_color(ray);
+		if(is_background)
+			background = get_sky_color(ray);
 
 		for(int i=0; i<max_depth; i++){
 			HitRecord record = check_intersections(ray,INFINITY);
