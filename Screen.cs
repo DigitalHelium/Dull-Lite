@@ -100,11 +100,7 @@ namespace Dull
         {
             base.OnRenderFrame(e);
             _controller.Update(this, (float)e.Time);
-
-            if (RenderTime < 0.6)
-                Title = (int)(1 / RenderTime) + " FPS";
-            else
-                Title = Math.Round(RenderTime, 3).ToString() + " Seconds per Frame";
+            Title = Math.Round(RenderTime, 3).ToString() + " Seconds per Frame / "+(int)(1 / RenderTime) + " FPS";
             SetNewCameraPosition();
 
             _intersectionShader.Use();

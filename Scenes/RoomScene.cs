@@ -27,6 +27,7 @@ namespace Dull.Scenes
 
             _lights.AddLight(new PointLight(new Vector3(-2, 3.8f, 1), 1, new Vector3i(90,70,255)));
             _lights.AddLight(new PointLight(new Vector3(2, 5, 1), 1, new Vector3i(255, 125, 50)));
+            _lights.AddLight(new PointLight(new Vector3(0, 9, 0), 1, new Vector3i(40, 40, 40)));
 
 
             _list.AddHittable(new TriangleMT(new Vector3(-5, 0, 5), new Vector3(5, 0, 5), new Vector3(-5, 0, -5), false, white));
