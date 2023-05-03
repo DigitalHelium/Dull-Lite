@@ -461,7 +461,7 @@ void trace_color(inout vec4 out_pixel){
 void trace_distance(inout vec4 out_pixel){
 	Ray ray = generate_ray(false);
 	HitRecord record = check_intersections(ray,INFINITY);
-	float t = mix(0.0,1.0,record.t/15);
+	float t = mix(0.0,1.0,record.t/vfov*2);
 	if(record.hit_anything)
 		out_pixel = vec4(vec3(t),1);
 	else
