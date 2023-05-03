@@ -277,10 +277,10 @@ vec3 tex_color(HitRecord rec){
 		return rec.mat.tex.albedo1;
 	}
 	if(rec.mat.tex.type == CHECKER){
-		float sines = sin(10 * rec.p.x) *  sin(10 * rec.p.y) * sin(10 * rec.p.z);// add object type
+		float sines = sin(5 * rec.p.x) *  sin(5 * rec.p.y) * sin(5 * rec.p.z);// add object type
 		int u = int(round(rec.u*50));
 		int v = int(round(rec.v*25));
-		if((u*v)%2==0)
+		if(sines<0)
 			return rec.mat.tex.albedo1;
 		else
 			return rec.mat.tex.albedo2;
@@ -297,7 +297,7 @@ float reflectance(float cosine, float ref_idx){
 //Creates new ray and modifies color depending on material of object that wa hit by ray
 bool scatter(Ray r, HitRecord rec,out vec3 attenuation, out Ray scattered){
 	if(rec.mat.type == LAMBERTIAN){
-		vec3 scatter_direction = rec.normal+random_in_unit_sphere(g_seed)*2;
+		vec3 scatter_direction = rec.normal+random_in_unit_sphere(g_seed)*70;
 
 		scattered = Ray(rec.p,scatter_direction);
 		attenuation = tex_color(rec);
@@ -384,7 +384,7 @@ bool get_color(HitRecord rec,inout vec3 color,inout vec3 emitted,inout vec3 refl
 		vec3 attenuation;
 
 		if(rec.mat.type == DIFFUSE_LIGHT){
-			emitted +=color*material_emit(rec);
+			emitted +=color*material_emit(rec)*0.5;
 			return false;
 		}
 
@@ -409,7 +409,7 @@ bool get_color(HitRecord rec,inout vec3 color,inout vec3 emitted,inout vec3 refl
 				return true;
 			}
 			if(rec.mat.type == LAMBERTIAN){
-					emitted +=refl*light(rec)*color;
+					emitted +=light(rec)*color;
 					color*=attenuation;
 					
 				return true;

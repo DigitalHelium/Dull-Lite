@@ -17,7 +17,7 @@ namespace Dull.Scenes
 
             Lambertian red = new Lambertian(new SolidColor(new Vector3(1.0f, 0.0f, 0.0f)));
             Lambertian green = new Lambertian(new SolidColor(new Vector3(0.0f, 1.0f, 0.0f)));
-            Metal white = new Metal(new SolidColor(new Vector3(0)), 0);
+            Metal white = new Metal(new SolidColor(new Vector3(1)), 0);
             Lambertian checker = new Lambertian(new CheckerPattern(new Vector3(0), new Vector3(1)));
             Transparent trans = new Transparent(new SolidColor(new Vector3(0.3f, 0.1f, 0.5f)), 1.1f);
             Dielectric die = new Dielectric(new SolidColor(new Vector3(0)), 1.5f);

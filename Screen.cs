@@ -42,8 +42,8 @@ namespace Dull
             0, 1, 3,   // first triangle
             1, 2, 3    // second triangle
         };
-        private bool _isObjectWindowOpened = true;
-        private bool _isLightsWindowOpened = true;
+        private bool _isObjectWindowOpened = false;
+        private bool _isLightsWindowOpened = false;
 
         public Screen(int width, int height) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height)}) { }
        
@@ -290,6 +290,7 @@ namespace Dull
                         _intersectionShader.Use();
                         _misc.UpdateParams();
                     }
+
                     bool isBackground = _misc.IsBackground;
                     if(ImGui.Checkbox("Background", ref isBackground))
                     {
@@ -297,7 +298,8 @@ namespace Dull
                         _intersectionShader.Use();
                         _misc.UpdateParams();
                     }
-
+                    ImGui.Text($"Camera FOV:{_scene.Camera.FOV}");
+                    ImGui.Text($"Camera Postion:{_scene.Camera.LookFrom}");
                     ImGui.EndMenu();
                 }
                 ImGui.EndMainMenuBar();
