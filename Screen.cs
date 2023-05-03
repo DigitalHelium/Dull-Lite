@@ -284,7 +284,7 @@ namespace Dull
                     ImGui.AlignTextToFramePadding();
                     ImGui.Text("Max Depth"); ImGui.SameLine();
                     ImGui.PushItemWidth(100);
-                    if (ImGui.InputInt(" ", ref maxDepth,1,128))
+                    if (ImGui.InputInt(" ", ref maxDepth,1,1))
                     {
                         _misc.MaxDepth = maxDepth;
                         _intersectionShader.Use();

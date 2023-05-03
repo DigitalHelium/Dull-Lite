@@ -278,9 +278,9 @@ vec3 tex_color(HitRecord rec){
 	}
 	if(rec.mat.tex.type == CHECKER){
 		float sines = sin(10 * rec.p.x) *  sin(10 * rec.p.y) * sin(10 * rec.p.z);// add object type
-		//int u = int(round(rec.u*50));
-		//int v = int(round(rec.v*25));
-		if(sines<0)
+		int u = int(round(rec.u*50));
+		int v = int(round(rec.v*25));
+		if((u*v)%2==0)
 			return rec.mat.tex.albedo1;
 		else
 			return rec.mat.tex.albedo2;
@@ -392,7 +392,7 @@ bool get_color(HitRecord rec,inout vec3 color,inout vec3 emitted,inout vec3 refl
 			ray = scattered;
 			if(rec.mat.type == METAL){
 				refl*=1-rec.mat.fuzz;
-				//color*=tex_color(rec);
+				color*=tex_color(rec);
 				return true;
 			}
 			if(rec.mat.type == DIELECTRIC){
@@ -475,7 +475,7 @@ void trace_normals(inout vec4 out_pixel){
 	if(record.hit_anything)
 		out_pixel = vec4(record.normal,1);
 	else
-		out_pixel = vec4(0);
+		out_pixel = vec4(0.1);
 }
 void main()
 {

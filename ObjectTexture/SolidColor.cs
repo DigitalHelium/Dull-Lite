@@ -17,6 +17,12 @@ namespace Dull.ObjectTexture
             _data = new Vector4[_objectSize];
             SetStd140Data();
         }
+        public SolidColor(Vector3i albedo)
+        {
+            _albedo = new Vector3(albedo.X / 255.0f, albedo.Y / 255.0f, albedo.Z / 255.0f);
+            _data = new Vector4[_objectSize];
+            SetStd140Data();
+        }
         public SolidColor()
         {
             _albedo = new Vector3(0.5f);

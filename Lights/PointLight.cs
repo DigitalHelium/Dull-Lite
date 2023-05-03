@@ -24,6 +24,14 @@ namespace Dull.Lights
             _data = new Vector4[_objectSize];
             SetStd140Data();
         }
+        public PointLight(Vector3 position, int intensity, Vector3i color)
+        {
+            _position = position;
+            _intensity = intensity;
+            _color = new Vector3(color.X / 255.0f, color.Y / 255.0f, color.Z / 255.0f);
+            _data = new Vector4[_objectSize];
+            SetStd140Data();
+        }
         private void SetStd140Data()
         {
             _data[0].Xyz = _position;
