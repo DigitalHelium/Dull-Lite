@@ -43,6 +43,9 @@ namespace Dull.Scenes
             _list.AddHittable(new TriangleMT(new Vector3(-5, 0, 5), new Vector3(-5, 10, 5), new Vector3(5, 10, 5), true, blue));
             _list.AddHittable(new TriangleMT(new Vector3(5, 10, 5), new Vector3(5, 0, 5), new Vector3(-5, 0, 5), true, blue));
 
+            _list.AddHittable(new TriangleMT(new Vector3(5, 10, 5), new Vector3(-5, 10, 5), new Vector3(-5, 0, 5), true, die));
+            _list.AddHittable(new TriangleMT(new Vector3(-5, 0, 5), new Vector3(5, 0, 5), new Vector3(5, 10, 5), true, die));
+
             _list.AddHittable(new Sphere(new Vector3(-2.2f, 2, -0.7f), 2f, metal));
             _list.AddHittable(new Sphere(new Vector3(-3.5f, 1.4f, 2.5f), 1.2f, die));
             _list.AddHittable(new Sphere(new Vector3(2.5f, 1.5f, -0.7f), 1f, checker));
