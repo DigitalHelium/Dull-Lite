@@ -40,6 +40,16 @@ namespace Dull
             _lookAt = lookFrom + _front;
             _speed = speed;
         }
+        public Camera(float aspectRatio, float vfov, Vector3 lookFrom, Vector3 lookAt, float speed)
+        {
+            _aspectRatio = aspectRatio;
+            _vfov = vfov;
+            _lookFrom = lookFrom;
+            _front = new Vector3(0, 0, -1);
+            _right = Vector3.Cross(_front, _vup);
+            _lookAt = lookAt;
+            _speed = speed;
+        }
         public Camera(float aspectRatio, float vfov, Vector3 lookFrom)
         {
             _aspectRatio = aspectRatio;
@@ -49,6 +59,7 @@ namespace Dull
             _right = Vector3.Cross(_front, _vup);
             _lookAt = lookFrom + _front;
         }
+
         public void UpdateParamLocations(int shaderHandle)
         {
             _screenWidthLocation = GL.GetUniformLocation(shaderHandle, "image_width");

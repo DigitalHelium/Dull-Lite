@@ -12,7 +12,7 @@ namespace Dull.Scenes
         {
             _list = new HittableList();
             _lights = new LightList();
-            _camera = new Camera(ratio, 40.0f, new Vector3(0, 5, 20),3);
+            _camera = new Camera(ratio, 26.0f, new Vector3(0, 5.3f, 30), 5);
 
 
             Lambertian white = new Lambertian(new SolidColor(new Vector3i(180,180,180)));
@@ -42,8 +42,8 @@ namespace Dull.Scenes
             _list.AddHittable(new TriangleMT(new Vector3(-5, 10, -5), new Vector3(5, 10, -5), new Vector3(5, 10, 5), false, white));
             _list.AddHittable(new TriangleMT(new Vector3(-5, 10, -5), new Vector3(-5, 10, 5), new Vector3(5, 10, 5), false, white));
 
-            _list.AddHittable(new TriangleMT(new Vector3(5, 10, 5), new Vector3(-5, 10, 5), new Vector3(-5, 0, 5), true, die));
-            _list.AddHittable(new TriangleMT(new Vector3(-5, 0, 5), new Vector3(5, 0, 5), new Vector3(5, 10, 5), true, die));
+            //_list.AddHittable(new TriangleMT(new Vector3(5, 10, 5), new Vector3(-5, 10, 5), new Vector3(-5, 0, 5), true, die));
+            //_list.AddHittable(new TriangleMT(new Vector3(-5, 0, 5), new Vector3(5, 0, 5), new Vector3(5, 10, 5), true, die));
 
             _list.AddHittable(new Sphere(new Vector3(-2.2f, 2, -0.7f), 2f, metal));
             _list.AddHittable(new Sphere(new Vector3(-3.5f, 1.4f, 2.5f), 1.2f, light));

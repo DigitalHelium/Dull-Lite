@@ -248,6 +248,18 @@ namespace Dull
                         _scene = new RoomScene2((float)Size.X / Size.Y);
                         _scene.UpdateData(_intersectionShader.Handle);
                     }
+                    if (ImGui.MenuItem("Reflection Test"))
+                    {
+                        _intersectionShader.Use();
+                        _scene = new ReflectionTest((float)Size.X / Size.Y);
+                        _scene.UpdateData(_intersectionShader.Handle);
+                    }
+                    if (ImGui.MenuItem("Light Test"))
+                    {
+                        _intersectionShader.Use();
+                        _scene = new LightTest((float)Size.X / Size.Y);
+                        _scene.UpdateData(_intersectionShader.Handle);
+                    }
 
                     ImGui.EndMenu();
                 }
@@ -313,6 +325,7 @@ namespace Dull
                     }
                     ImGui.Text($"Camera FOV:{_scene.Camera.FOV}");
                     ImGui.Text($"Camera Postion:{_scene.Camera.LookFrom}");
+                    ImGui.Text($"Camera Look At:{_scene.Camera.LookAt}");
                     ImGui.Text($"Image Resolution:({size.X}; {size.Y - mainMenuBarHeight})");
                     ImGui.EndMenu();
                 }
@@ -407,8 +420,8 @@ namespace Dull
                         if (ImGui.ColorEdit3("Color", ref c))
                             light.SetColor(new Vector3(c.X, c.Y, c.Z));
 
-                        int intens = light.GetIntensity();
-                        if (ImGui.SliderInt("Intensity", ref intens, 0, 50))
+                        float intens = light.GetIntensity();
+                        if (ImGui.SliderFloat("Intensity", ref intens, 0, 20))
                             light.SetIntensity(intens);
 
                         _scene.LightList.ChangeLight(light);

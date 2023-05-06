@@ -19,7 +19,7 @@ namespace Dull.Lights
         Vector3 GetColor();
         void SetColor(Vector3 color);
 
-        int GetIntensity();
-        void SetIntensity(int intensity);
+        float GetIntensity();
+        void SetIntensity(float intensity);
     }
 }
