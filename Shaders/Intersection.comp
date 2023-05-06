@@ -370,7 +370,7 @@ vec3 light(HitRecord rec){
 	vec3 light_direction;
 	for(int i=0;i<plight_size;i++){
 		if(check_shadow(rec,pointlights[i],light_distance, light_direction))
-			light_sum +=  tex_color(rec)*pointlights[i].intensity * pointlights[i].color / (4 * PI * light_distance * light_distance) * max(0, dot(rec.normal,-light_direction));
+			light_sum +=  tex_color(rec)*pointlights[i].intensity/2 * pointlights[i].color / (4 * PI * light_distance * light_distance) * max(0, dot(rec.normal,-light_direction));
 	}
 
 	return light_sum;
@@ -434,6 +434,10 @@ vec3 get_sky_color(Ray ray){
 	return (1.0f - t) * vec3(1.0f,1.0f,1.0f) + t * vec3(0.5f,0.7f,1.0f);
 }
 
+vec3 gammaCorrection (vec3 colour, float gamma) {
+  return pow(colour, vec3(1. / gamma));
+}
+
 //Traces rays and returns accumulated color for multiple samples 
 void trace_color(inout vec4 out_pixel){
 	vec3 temp_color = vec3(0); 
@@ -456,6 +460,7 @@ void trace_color(inout vec4 out_pixel){
 		temp_color += emitted;
 	}
 	out_pixel.xyz = temp_color/max_samples;
+	out_pixel.xyz = gammaCorrection(out_pixel.xyz,2.2);
 }
 //Traces rays and returns distance to each object in grayscale
 void trace_distance(inout vec4 out_pixel){

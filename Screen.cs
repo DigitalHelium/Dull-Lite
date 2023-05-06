@@ -76,7 +76,7 @@ namespace Dull
             _scene = new RoomScene((float)Size.X / Size.Y);
             _scene.Camera.UpdateParamLocations(_intersectionShader.Handle);
 
-            _misc = new MiscUniforms(0, 1, 16);
+            _misc = new MiscUniforms(0, 1, 8);
             _misc.UpdateParamLocations(_intersectionShader.Handle);
             GL.Uniform1(_misc.ModeLocation, _misc.Mode);
             GL.Uniform1(_misc.MaxSamplesLocation, _misc.MaxSamples);
@@ -175,14 +175,14 @@ namespace Dull
             }
 
 
-            if (e.Key == Keys.D1)
+            if (e.Key == Keys.F)
             {
                 _misc.Mode = 0;
                 _misc.MaxSamples = 1;
             }
-            if (e.Key == Keys.D2)
+            if (e.Key == Keys.P)
                 _misc.Mode = 1;
-            if (e.Key == Keys.D3)
+            if (e.Key == Keys.N)
                 _misc.Mode = 2;
             _intersectionShader.Use();
             GL.Uniform1(_misc.ModeLocation, _misc.Mode);
@@ -211,6 +211,7 @@ namespace Dull
 
             if (ImGui.BeginMainMenuBar())
             {
+                int mainMenuBarHeight= (int)ImGui.GetWindowSize().Y;
                 if (ImGui.BeginMenu("File"))
                 {
                     if (ImGui.MenuItem("Exit", "Esc"))
@@ -241,6 +242,12 @@ namespace Dull
                         _scene = new RoomScene((float)Size.X / Size.Y);
                         _scene.UpdateData(_intersectionShader.Handle);
                     }
+                    if (ImGui.MenuItem("Room Scene2"))
+                    {
+                        _intersectionShader.Use();
+                        _scene = new RoomScene2((float)Size.X / Size.Y);
+                        _scene.UpdateData(_intersectionShader.Handle);
+                    }
 
                     ImGui.EndMenu();
                 }
@@ -249,15 +256,15 @@ namespace Dull
                 {
                     if (ImGui.BeginMenu("Render Mode"))
                     {
-                        if (ImGui.MenuItem("Full Render","1"))
+                        if (ImGui.MenuItem("Full Render","F"))
                         {
                             _misc.Mode = 0;
                         }
-                        if (ImGui.MenuItem("Depth Map","2"))
+                        if (ImGui.MenuItem("Depth Map","P"))
                         {
                             _misc.Mode = 1;
                         }
-                        if (ImGui.MenuItem("Normal Map", "3"))
+                        if (ImGui.MenuItem("Normal Map", "N"))
                         {
                             _misc.Mode = 2;
                         }
@@ -294,8 +301,19 @@ namespace Dull
                         _intersectionShader.Use();
                         _misc.UpdateParams();
                     }
+                    Vector2i size = Size;
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.Text("Window Resolution"); ImGui.SameLine();
+                    ImGui.PushItemWidth(100);
+                    if (ImGui.InputInt2("  ", ref size.X))
+                    {
+                        if(Size.Y != size.Y)
+                            size.Y += mainMenuBarHeight;
+                        Size = size;
+                    }
                     ImGui.Text($"Camera FOV:{_scene.Camera.FOV}");
                     ImGui.Text($"Camera Postion:{_scene.Camera.LookFrom}");
+                    ImGui.Text($"Image Resolution:({size.X}; {size.Y - mainMenuBarHeight})");
                     ImGui.EndMenu();
                 }
                 ImGui.EndMainMenuBar();

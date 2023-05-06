@@ -236,8 +236,14 @@ void main()
 
             foreach (Keys key in Enum.GetValues(typeof(Keys)))
             {
-                if(key != Keys.Unknown)
+                if (key != Keys.Unknown)
+                {
+                    if (keyboardState.IsKeyPressed(key) && key>=Keys.D0 && key<=Keys.D9)
+                    {
+                        PressChar((char)key);
+                    }
                     io.KeysDown[(int)key] = keyboardState.IsKeyDown(key);
+                }
             }
 
             foreach (var c in PressedChars)
@@ -286,6 +292,8 @@ void main()
             io.KeyMap[(int)ImGuiKey.X] = (int)Keys.X;
             io.KeyMap[(int)ImGuiKey.Y] = (int)Keys.Y;
             io.KeyMap[(int)ImGuiKey.Z] = (int)Keys.Z;
+            io.KeyMap[(int)ImGuiKey.Keypad5] = (int)Keys.D5;
+            io.KeyMap[(int)ImGuiKey.Keypad6] = (int)Keys.D5;
         }
 
         private void RenderImDrawData(ImDrawDataPtr draw_data)

@@ -6,7 +6,7 @@ namespace Dull
     {
         static void Main(string[] args)
         {
-            using (Screen scrn = new Screen(1000, 1000))
+            using (Screen scrn = new Screen(1000, 900))
             {
                 scrn.CursorState = CursorState.Grabbed;
                 //scrn.VSync = VSyncMode.On;

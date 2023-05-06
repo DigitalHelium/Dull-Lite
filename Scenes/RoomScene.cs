@@ -22,12 +22,13 @@ namespace Dull.Scenes
             Metal metal = new Metal(new SolidColor(new Vector3i(150,150,255)), 0);
             Dielectric die = new Dielectric(new SolidColor(new Vector3(0)), 1.4f);
             Lambertian checker = new Lambertian(new CheckerPattern(new Vector3(0), new Vector3(1)));
-            DiffuseLight light = new DiffuseLight(new SolidColor(new Vector3(0.7f, 0.3f, 1f)));
+            DiffuseLight light = new DiffuseLight(new SolidColor(new Vector3i(500, 500, 500)));
+            Transparent trans = new Transparent(new SolidColor(new Vector3(1)), 100);
 
 
-            _lights.AddLight(new PointLight(new Vector3(-2, 3.8f, 1), 1, new Vector3i(90,70,255)));
-            _lights.AddLight(new PointLight(new Vector3(2, 5, 1), 1, new Vector3i(255, 125, 50)));
-            _lights.AddLight(new PointLight(new Vector3(0, 9, 0), 1, new Vector3i(40, 40, 40)));
+            _lights.AddLight(new PointLight(new Vector3(-2, 3.8f, 1), 1, new Vector3i(40,40,255)));
+            _lights.AddLight(new PointLight(new Vector3(2, 5, 1), 1, new Vector3i(255, 40, 40)));
+            _lights.AddLight(new PointLight(new Vector3(0, 9, 0), 1, new Vector3i(255, 255, 255)));
 
 
             _list.AddHittable(new TriangleMT(new Vector3(-5, 0, 5), new Vector3(5, 0, 5), new Vector3(-5, 0, -5), false, white));
@@ -40,16 +41,14 @@ namespace Dull.Scenes
             _list.AddHittable(new TriangleMT(new Vector3(-5, 0, -5), new Vector3(5, 0, -5), new Vector3(5, 10, -5), false, checker));
             _list.AddHittable(new TriangleMT(new Vector3(-5, 10, -5), new Vector3(5, 10, -5), new Vector3(5, 10, 5), false, white));
             _list.AddHittable(new TriangleMT(new Vector3(-5, 10, -5), new Vector3(-5, 10, 5), new Vector3(5, 10, 5), false, white));
-            _list.AddHittable(new TriangleMT(new Vector3(-5, 0, 5), new Vector3(-5, 10, 5), new Vector3(5, 10, 5), true, blue));
-            _list.AddHittable(new TriangleMT(new Vector3(5, 10, 5), new Vector3(5, 0, 5), new Vector3(-5, 0, 5), true, blue));
 
             _list.AddHittable(new TriangleMT(new Vector3(5, 10, 5), new Vector3(-5, 10, 5), new Vector3(-5, 0, 5), true, die));
             _list.AddHittable(new TriangleMT(new Vector3(-5, 0, 5), new Vector3(5, 0, 5), new Vector3(5, 10, 5), true, die));
 
             _list.AddHittable(new Sphere(new Vector3(-2.2f, 2, -0.7f), 2f, metal));
-            _list.AddHittable(new Sphere(new Vector3(-3.5f, 1.4f, 2.5f), 1.2f, die));
-            _list.AddHittable(new Sphere(new Vector3(2.5f, 1.5f, -0.7f), 1f, checker));
-            _list.AddHittable(new Sphere(new Vector3(0.4f, 1.2f, 2.4f), 1f, light));
+            _list.AddHittable(new Sphere(new Vector3(-3.5f, 1.4f, 2.5f), 1.2f, light));
+            _list.AddHittable(new Sphere(new Vector3(3.3f, 1.5f, -0.7f), 1.5f, trans));
+            _list.AddHittable(new Sphere(new Vector3(0.4f, 1.2f, 2.4f), 1f, die));
             //_list.AddHittable(new Sphere(new Vector3(0, 2, -0), 0.5f, diffuseLight));
         }
     }
