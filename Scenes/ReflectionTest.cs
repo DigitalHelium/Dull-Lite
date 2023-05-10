@@ -18,6 +18,7 @@ namespace Dull.Scenes
             Metal metal2 = new Metal(new SolidColor(new Vector3(1)), 0.3f);
             Metal metal3 = new Metal(new SolidColor(new Vector3(1)), 0.9f);
             Lambertian checker = new Lambertian(new CheckerPattern(new Vector3(0), new Vector3(1)));
+            Lambertian paper = new Lambertian(new Wallpaper(new Vector3(1f,0.1f,0.1f), new Vector3(1.0f, 0.32f, 0.29f)));
             DiffuseLight light = new DiffuseLight(new SolidColor(new Vector3i(1000, 1000, 1000)));
             Lambertian red = new Lambertian(new SolidColor(new Vector3i(220,20,20)));
 

@@ -2,7 +2,7 @@
 
 namespace Dull.ObjectTexture
 {
-    public enum TextureType { Solid = 10, Checker = 11 };
+    public enum TextureType { Solid = 10, Checker = 11, Wallpaper = 12 };
     interface ITexture
     {
         int GetSizeInBytes();

@@ -366,12 +366,13 @@ namespace Dull
 
                         ITexture tex = mat.GetTexture();
                         type = (int)tex.GetTextureType();
-                        if (ImGui.SliderInt("Texture", ref type, 10, 11, tex.GetTextureType().ToString()))
+                        if (ImGui.SliderInt("Texture", ref type, 10, 12, tex.GetTextureType().ToString()))
                         {
                             switch (type)
                             {
                                 case ((int)TextureType.Solid): tex = new SolidColor(tex.GetAlbedo()[0]); break;
                                 case ((int)TextureType.Checker): tex = new CheckerPattern(tex.GetAlbedo()[0]); break;
+                                case ((int)TextureType.Wallpaper): tex = new Wallpaper(tex.GetAlbedo()[0]); break;
                             }
                             mat.SetTexture(tex);
                         }
@@ -386,6 +387,16 @@ namespace Dull
                                     break;
                                 }
                             case ((int)TextureType.Checker):
+                                {
+                                    Vector3 odd = tex.GetAlbedo()[0];
+                                    Vector3 even = tex.GetAlbedo()[1];
+                                    System.Numerics.Vector3 c1 = new System.Numerics.Vector3(odd.X, odd.Y, odd.Z);
+                                    System.Numerics.Vector3 c2 = new System.Numerics.Vector3(even.X, even.Y, even.Z);
+                                    if (ImGui.ColorEdit3("Odd Color", ref c1) | ImGui.ColorEdit3("Even Color", ref c2))
+                                        tex.SetAlbedo(new Vector3[] { new Vector3(c1.X, c1.Y, c1.Z), new Vector3(c2.X, c2.Y, c2.Z) });
+                                    break;
+                                }
+                            case ((int)TextureType.Wallpaper):
                                 {
                                     Vector3 odd = tex.GetAlbedo()[0];
                                     Vector3 even = tex.GetAlbedo()[1];

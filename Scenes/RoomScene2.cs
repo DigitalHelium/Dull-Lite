@@ -24,7 +24,7 @@ namespace Dull.Scenes
             Dielectric die = new Dielectric(new SolidColor(new Vector3(0)), 1.4f);
             Lambertian checker = new Lambertian(new CheckerPattern(new Vector3(0), new Vector3(1)));
             DiffuseLight light = new DiffuseLight(new SolidColor(new Vector3i(1000, 1000, 1000)));
-
+            DiffuseLight light16 = new DiffuseLight(new SolidColor(new Vector3i(16000, 16000, 16000)));
 
             //_lights.AddLight(new PointLight(new Vector3(-2, 3.8f, 1), 1, new Vector3i(90, 70, 255)));
             //_lights.AddLight(new PointLight(new Vector3(2, 5, 1), 1, new Vector3i(255, 125, 50)));
@@ -44,6 +44,8 @@ namespace Dull.Scenes
             _list.AddHittable(new TriangleMT(new Vector3(-4, 9.9f, -4), new Vector3(4, 9.9f, -4), new Vector3(4, 9.9f, 4), false, light));
             _list.AddHittable(new TriangleMT(new Vector3(-4, 9.9f, -4), new Vector3(-4, 9.9f, 4), new Vector3(4, 9.9f, 4), false, light));
 
+            //_list.AddHittable(new TriangleMT(new Vector3(-1, 9.9f, -1), new Vector3(1, 9.9f, -1), new Vector3(1, 9.9f, 1), false, light16));
+           // _list.AddHittable(new TriangleMT(new Vector3(-1, 9.9f, -1), new Vector3(-1, 9.9f, 1), new Vector3(1, 9.9f, 1), false, light16));
 
             Vector3 a = new Vector3(2.81f, 0, -1.96f);
             Vector3 b = new Vector3(0, 0, -0.44f);
