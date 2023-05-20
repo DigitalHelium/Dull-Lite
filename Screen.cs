@@ -254,6 +254,12 @@ namespace Dull
                         _scene = new ReflectionTest((float)Size.X / Size.Y);
                         _scene.UpdateData(_intersectionShader.Handle);
                     }
+                    if (ImGui.MenuItem("Refraction Test"))
+                    {
+                        _intersectionShader.Use();
+                        _scene = new RefractionTest((float)Size.X / Size.Y);
+                        _scene.UpdateData(_intersectionShader.Handle);
+                    }
                     if (ImGui.MenuItem("Light Test"))
                     {
                         _intersectionShader.Use();
