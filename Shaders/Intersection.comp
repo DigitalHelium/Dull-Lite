@@ -80,6 +80,9 @@ struct TriangleMT{
 	float is_one_sided;
 	vec3 v2v0;
 	vec3 v1v0;
+	vec3 vn0;
+	vec3 vn1;
+	vec3 vn2;
 	Material mat;
 };
 
@@ -145,7 +148,7 @@ bool hit_sphere(Ray r,float t_min, float t_max, vec3 center, float radius, inout
 	return true;
 }
 
-bool hit_trianglemt(Ray r,float t_min, float t_max, vec3 v0, vec3 v2v0, vec3 v1v0, bool is_one_sided , inout HitRecord hit_record){
+bool hit_trianglemt(Ray r,float t_min, float t_max, vec3 v0, vec3 v2v0, vec3 v1v0, vec3 vn0, vec3 vn1, vec3 vn2, bool is_one_sided, inout HitRecord hit_record){
 	vec3 direction = r.direction.xyz;
 	vec3 origin = r.origin.xyz;
 
@@ -175,10 +178,7 @@ bool hit_trianglemt(Ray r,float t_min, float t_max, vec3 v0, vec3 v2v0, vec3 v1v
 	hit_record.t = t;
 	hit_record.p = point_at(t,r);
 	hit_record.normal = cross(v1v0,v2v0);
-	vec2 p1 = vec2(0,0);
-	vec2 p2 = vec2(0,1);
-	vec2 p3 = vec2(1,1);
-	vec2 uv = p1*u+p2*v+p3*(1-u-v);
+	vec2 uv = vn0.xy*(1-u-v)+vn1.xy*u+vn2.xy*v;
 	hit_record.u = uv.x;
 	hit_record.v = uv.y;
 
@@ -208,7 +208,7 @@ HitRecord check_intersections(Ray r, float dist){
 		}
 	}
 	for(int i=0;i<trianglemt_size;i++){
-		if(hit_trianglemt(r,minimum_point,closest_so_far,trianglesmt[i].v0,trianglesmt[i].v2v0,trianglesmt[i].v1v0,bool(trianglesmt[i].is_one_sided), rec)){
+		if(hit_trianglemt(r,minimum_point,closest_so_far,trianglesmt[i].v0,trianglesmt[i].v2v0,trianglesmt[i].v1v0,trianglesmt[i].vn0,trianglesmt[i].vn1,trianglesmt[i].vn2,bool(trianglesmt[i].is_one_sided), rec)){
 			rec.hit_anything = true;
 			closest_so_far = rec.t;
 			rec.mat = trianglesmt[i].mat;
@@ -291,18 +291,19 @@ vec3 tex_color(HitRecord rec){
 		else
 			return rec.mat.tex.albedo2;
 	}
-	if(rec.mat.tex.type == SHINING){
+	if(rec.mat.tex.type == WALLPAPER){
 		vec2 p;
 		if(rec.normal.y!=0)
 			p =rec.p.xz;
 		else
 			p = rec.normal.x!=0?p = rec.p.yz:p = rec.p.xy;
+		p =vec2(rec.u,rec.v);
 		p.x *= sign(cos(length(ceil(p /= 2.))*99.));
-		float f = clamp(cos(min(length(p = fract(p)), length(--p))*88.), 0., 1.);
+		float f = clamp(cos(min(length(p = fract(p)), length(--p))*120.), 0., 1.);
 		f = clamp(f, 0., 1.);
 		return mix(rec.mat.tex.albedo1,rec.mat.tex.albedo2, f);
 	}
-	if(rec.mat.tex.type == WALLPAPER){
+	if(rec.mat.tex.type == SHINING){
 		vec3 red = vec3(161., 28., 31.)/255.;
 		vec3 orange = vec3(225., 99., 40.)/255.;
 		vec3 brown = vec3(71., 38., 31.)/255.;
@@ -331,7 +332,7 @@ vec3 tex_color(HitRecord rec){
 		bool ii = d < 1.5/7.;
 
 		return mix(brown, mix(orange, red, float(ii)),float(b));
-		//return vec3(rec.u,rec.v,1);
+		return vec3(rec.u,rec.v,1);
 	}
 
 }

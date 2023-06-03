@@ -5,14 +5,14 @@ namespace Dull.Materials
 {
     class Lambertian : IMaterial
     {
-        private static int _objectSize = 1;
+        public static int OBJECT_SIZE = 1;
         private ITexture _tex;
         private const MaterialType _type = MaterialType.Lambertian;
         private Vector4[] _data;
         public Lambertian(ITexture tex)
         {
             _tex = tex;
-            _data = new Vector4[_objectSize+_tex.GetSizeInVec4()];
+            _data = new Vector4[OBJECT_SIZE+_tex.GetSizeInVec4()];
             SetStd140Data();
         }
         public MaterialType GetMaterialType()
@@ -32,8 +32,8 @@ namespace Dull.Materials
         {
             _data[0].X = (float)_type;
             Vector4[] texData = _tex.GetSTD140Data();
-            for (int i = _objectSize; i < _data.Length; i++)
-                _data[i] = texData[i - _objectSize];
+            for (int i = OBJECT_SIZE; i < _data.Length; i++)
+                _data[i] = texData[i - OBJECT_SIZE];
         }
 
         public Vector4[] GetSTD140Data()

@@ -19,9 +19,11 @@ namespace Dull.Objects
 
         private int _sphereCount;
         private int _trianglemtCount;
+        private int _modelTriangleCount;
 
         private int _sphereSizeInBytes = SIZE_OFFSET;
         private int _trianglemtSizeInBytes = SIZE_OFFSET;
+        private int _modelSizeInBytes = 0;
         public HittableList()
         {
             _buf = new StorageBuffer();
@@ -39,13 +41,13 @@ namespace Dull.Objects
         {
 
             CalcSizes();
-            _buf.ResizeBuffer(_sphereSizeInBytes+_trianglemtSizeInBytes);
+            _buf.ResizeBuffer(_sphereSizeInBytes+_trianglemtSizeInBytes+_modelSizeInBytes);
 
             _buf.BindBufferRange(_spheresLocation, 0, _sphereSizeInBytes);
-            _buf.BindBufferRange(_trianglemtLocation, _sphereSizeInBytes, _trianglemtSizeInBytes);
+            _buf.BindBufferRange(_trianglemtLocation, _sphereSizeInBytes, _trianglemtSizeInBytes+_modelSizeInBytes);
 
             _buf.AttachSubData(BitConverter.GetBytes(_sphereCount), 0);
-            _buf.AttachSubData(BitConverter.GetBytes(_trianglemtCount), _sphereSizeInBytes);
+            _buf.AttachSubData(BitConverter.GetBytes(_trianglemtCount + _modelTriangleCount), _sphereSizeInBytes);
 
                                                 
             foreach(IHittable obj in _hitList)
@@ -71,11 +73,12 @@ namespace Dull.Objects
         }
         private void CalcSizes()
         {
-            _sphereSizeInBytes = GetOffsets(HittableType.Sphere, _sphereSizeInBytes, out _sphereCount);
-            _trianglemtSizeInBytes = GetOffsets(HittableType.TriangleMT, _sphereSizeInBytes + _trianglemtSizeInBytes, out _trianglemtCount);
+            _sphereSizeInBytes = GetOffsets(HittableType.Sphere, _sphereSizeInBytes, out _sphereCount, SIZE_OFFSET);
+            _trianglemtSizeInBytes = GetOffsets(HittableType.TriangleMT, _sphereSizeInBytes + _trianglemtSizeInBytes, out _trianglemtCount, SIZE_OFFSET);
+            _modelSizeInBytes = GetOffsets(HittableType.Model, _sphereSizeInBytes + _trianglemtSizeInBytes + _modelSizeInBytes, out _modelTriangleCount,0);
         }
 
-        private int GetOffsets(HittableType type,int offset, out int count)
+        private int GetOffsets(HittableType type,int offset, out int count, int sizeOffset)
         {
             count = 0;
             int objOffset = offset;
@@ -85,10 +88,10 @@ namespace Dull.Objects
                 {
                     obj.SetOffset(objOffset);
                     objOffset += obj.GetSizeInBytes();
-                    count++;
+                    count+=obj.GetCount();
                 }
             }
-            return objOffset-offset+SIZE_OFFSET;
+            return objOffset-offset+ sizeOffset;
         }
 
     }

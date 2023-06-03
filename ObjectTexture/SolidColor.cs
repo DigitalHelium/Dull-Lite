@@ -7,26 +7,26 @@ namespace Dull.ObjectTexture
 {
     class SolidColor : ITexture
     {
-        private static int _objectSize = 2;
+        public static int OBJECT_SIZE = 2;
         private Vector3 _albedo;
         private const TextureType _type = TextureType.Solid;
         private Vector4[] _data;
         public SolidColor(Vector3 albedo)
         {
             _albedo = albedo;
-            _data = new Vector4[_objectSize];
+            _data = new Vector4[OBJECT_SIZE];
             SetStd140Data();
         }
         public SolidColor(Vector3i albedo)
         {
             _albedo = new Vector3(albedo.X / 255.0f, albedo.Y / 255.0f, albedo.Z / 255.0f);
-            _data = new Vector4[_objectSize];
+            _data = new Vector4[OBJECT_SIZE];
             SetStd140Data();
         }
         public SolidColor()
         {
             _albedo = new Vector3(0.5f);
-            _data = new Vector4[_objectSize];
+            _data = new Vector4[OBJECT_SIZE];
             SetStd140Data();
         }
         private void SetStd140Data()

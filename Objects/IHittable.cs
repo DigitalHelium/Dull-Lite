@@ -3,7 +3,7 @@ using OpenTK.Mathematics;
 
 namespace Dull.Objects
 {
-    public enum HittableType { Sphere, TriangleMT };
+    public enum HittableType { Sphere, TriangleMT, Model };
     interface IHittable
     {
         HittableType GetHitType();
@@ -14,9 +14,11 @@ namespace Dull.Objects
         string GetInfo();
         string GetName();
         Vector3 GetPostion();
+        int GetCount();
         void SetPostion(Vector3 position);
 
         IMaterial GetMaterial();
         void SetMaterial(IMaterial material);
+        void SetUpdatedState();
     }
 }

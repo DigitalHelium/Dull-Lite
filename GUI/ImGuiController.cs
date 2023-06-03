@@ -47,7 +47,8 @@ namespace Dull.GUI
             var io = ImGui.GetIO();
             io.Fonts.AddFontDefault();
 
-            io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
+            io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.PlatformHasViewports;
+            io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
 
             CreateDeviceResources();
             SetKeyMappings();
@@ -178,6 +179,7 @@ void main()
 
                 Util.CheckGLError("Imgui Controller");
             }
+            
         }
 
         /// <summary>
@@ -413,7 +415,7 @@ void main()
                 }
                 vtx_offset += cmd_list.VtxBuffer.Size;
             }
-
+            
             GL.Disable(EnableCap.Blend);
             GL.Disable(EnableCap.ScissorTest);
         }

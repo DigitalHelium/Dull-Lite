@@ -35,11 +35,12 @@ namespace Dull.Objects
             {
                 _data[0].Xyz = _center;
                 _data[0].W = _radius;
-                _isUpdated = !_isUpdated;
+                _isUpdated = false;
+                Vector4[] matData = _mat.GetSTD140Data();
+                for (int i = _objectSize; i < _data.Length; i++)
+                    _data[i] = matData[i - _objectSize];
             }
-            Vector4[] matData = _mat.GetSTD140Data();
-            for (int i = _objectSize; i < _data.Length; i++)
-                _data[i] = matData[i - _objectSize];
+            
         }
 
         public HittableType GetHitType()
@@ -78,7 +79,7 @@ namespace Dull.Objects
         public void SetPostion(Vector3 position)
         {
             _center = position;
-            _isUpdated = !_isUpdated;
+            SetUpdatedState();
         }
 
         public IMaterial GetMaterial()
@@ -89,6 +90,16 @@ namespace Dull.Objects
         public void SetMaterial(IMaterial material)
         {
             _mat = material;
+            SetUpdatedState();
+        }
+
+        public int GetCount()
+        {
+            return 1;
+        }
+        public void SetUpdatedState()
+        {
+            _isUpdated = true;
         }
     }
 }

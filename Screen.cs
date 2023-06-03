@@ -42,7 +42,7 @@ namespace Dull
             0, 1, 3,   // first triangle
             1, 2, 3    // second triangle
         };
-        private bool _isObjectWindowOpened = false;
+        private bool _isObjectWindowOpened = true;
         private bool _isLightsWindowOpened = false;
 
         public Screen(int width, int height) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height)}) { }
@@ -73,7 +73,7 @@ namespace Dull
             _intersectionShader = new ComputeShader(@"..\..\..\Shaders\Intersection.comp");
             _intersectionShader.Use();
 
-            _scene = new RoomScene((float)Size.X / Size.Y);
+            _scene = new ReflectionTest((float)Size.X / Size.Y);
             _scene.Camera.UpdateParamLocations(_intersectionShader.Handle);
 
             _misc = new MiscUniforms(0, 1, 8);
@@ -90,6 +90,8 @@ namespace Dull
             _renderQuad = new Texture(Size.X, Size.Y, PixelInternalFormat.Rgb32f, PixelFormat.Rgba, (IntPtr)0,4);
 
             _controller = new ImGuiController(Size.X, Size.Y);
+
+
         }
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
@@ -381,6 +383,7 @@ namespace Dull
                                 case ((int)TextureType.Wallpaper): tex = new Wallpaper(tex.GetAlbedo()[0]); break;
                             }
                             mat.SetTexture(tex);
+                            hittable.SetUpdatedState();
                         }
                         switch (type)
                         {
