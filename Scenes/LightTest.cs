@@ -18,7 +18,7 @@ namespace Dull.Scenes
             Lambertian white = new Lambertian(new SolidColor(new Vector3i(249,246,238)));
             Metal metal = new Metal(new SolidColor(new Vector3(1)), 0);
 
-            float intensity = 0.5f;
+            float intensity = 5f;
             float height = 2;
             _lights.AddLight(new PointLight(new Vector3(0, height, 1), intensity, new Vector3i(0, 0, 255)));
             _lights.AddLight(new PointLight(new Vector3(-1, height, 1), intensity, new Vector3i(197, 0, 58)));

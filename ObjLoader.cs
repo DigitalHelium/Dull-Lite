@@ -23,7 +23,7 @@ namespace Dull
         public bool Load(string path)
         {
             if (path == null) return false;
-            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)) 
+            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 using (var file = new StreamReader(path))
                 {
@@ -31,7 +31,7 @@ namespace Dull
                 }
             }
         }
-        public bool ReadScene(StreamReader reader) 
+        public bool ReadScene(StreamReader reader)
         {
             int lineCounter = 0;
             string line;
@@ -59,20 +59,28 @@ namespace Dull
                     try
                     {
                         string[] dataStrings = data.Split(dataSeperators, StringSplitOptions.RemoveEmptyEntries);
-                        Vector4i vertex = new Vector4i();
-                        for (int i = 0;i<dataStrings.Length;i++)
+                        List<Vector3i> vertices = new List<Vector3i>();
+                        for (int i = 1; i <= dataStrings.Length - 2; i++)
                         {
-                            vertex[i] = int.Parse(dataStrings[i].Split(new[] { '/' }, StringSplitOptions.None)[0]);
+                            _faces.Add(new Vector3i
+                                (
+                                    int.Parse(dataStrings[0].Split(new[] { '/' }, StringSplitOptions.None)[0]),
+                                    int.Parse(dataStrings[i].Split(new[] { '/' }, StringSplitOptions.None)[0]),
+                                    int.Parse(dataStrings[i + 1].Split(new[] { '/' }, StringSplitOptions.None)[0])
+                                ));
 
                         }
-                        _faces.Add(new Vector3i(vertex[0], vertex[1], vertex[2]));
-                        //_faces.Add(new Vector3i(vertex[0], vertex[2], vertex[3]));
                     }
                     catch (Exception ex) { Console.WriteLine(ex.Message + "at line " + lineCounter); return false; }
                 }
 
             }
             return true;
+        }
+        public void Clear() 
+        {
+            _verts = new List<Vector3>();
+            _faces = new List<Vector3i>();
         }
         public static bool TryReadLineType(string line, out string type, out string data)
         {

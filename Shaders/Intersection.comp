@@ -134,7 +134,7 @@ bool hit_sphere(Ray r,float t_min, float t_max, vec3 center, float radius, inout
 	}
 	hit_record.t = root;
 	hit_record.p = point_at(root,r);
-	hit_record.normal = (hit_record.p - center)/radius;
+	hit_record.normal = normalize((hit_record.p - center)/radius);
 	sphere_uv(hit_record.normal,hit_record.u,hit_record.v);
 
 	float front_face = dot(direction,hit_record.normal);
@@ -177,7 +177,7 @@ bool hit_trianglemt(Ray r,float t_min, float t_max, vec3 v0, vec3 v2v0, vec3 v1v
 	
 	hit_record.t = t;
 	hit_record.p = point_at(t,r);
-	hit_record.normal = cross(v1v0,v2v0);
+	hit_record.normal = normalize(cross(v1v0,v2v0));
 	vec2 uv = vn0.xy*(1-u-v)+vn1.xy*u+vn2.xy*v;
 	hit_record.u = uv.x;
 	hit_record.v = uv.y;
@@ -346,14 +346,14 @@ float reflectance(float cosine, float ref_idx){
 //Creates new ray and modifies color depending on material of object that wa hit by ray
 bool scatter(Ray r, HitRecord rec,out vec3 attenuation, out Ray scattered){
 	if(rec.mat.type == LAMBERTIAN){
-		vec3 scatter_direction = rec.normal+random_in_unit_sphere(g_seed)*70;
+		vec3 scatter_direction = rec.normal+random_in_unit_sphere(g_seed);
 
 		scattered = Ray(rec.p,scatter_direction);
 		attenuation = tex_color(rec);
 		return true;
 	}
 	if(rec.mat.type == METAL){
-		vec3 reflected = reflect(normalize(r.direction),rec.normal);
+		vec3 reflected = reflect(r.direction,normalize(rec.normal));
 		scattered = Ray(rec.p, reflected + rec.mat.fuzz * random_in_unit_sphere(g_seed));
 		attenuation = tex_color(rec);
 		return true;
@@ -453,8 +453,8 @@ bool get_color(HitRecord rec,inout vec3 color,inout vec3 emitted,inout vec3 refl
 				return true;
 			}
 			if(rec.mat.type == TRANSPARENT){
-					emitted +=light(rec)*rec.mat.transparency;
-					
+					emitted +=light(rec)*rec.mat.transparency*color;
+					color*=attenuation;
 				return true;
 			}
 			if(rec.mat.type == LAMBERTIAN){

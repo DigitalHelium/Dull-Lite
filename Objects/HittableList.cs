@@ -39,6 +39,9 @@ namespace Dull.Objects
         }
         public void DataToBuffer(int shaderHandle)
         {
+            _trianglemtSizeInBytes = SIZE_OFFSET;
+            _sphereSizeInBytes = SIZE_OFFSET;
+            _modelSizeInBytes = 0;
 
             CalcSizes();
             _buf.ResizeBuffer(_sphereSizeInBytes+_trianglemtSizeInBytes+_modelSizeInBytes);

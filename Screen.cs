@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Windows;
 using Dull.GUI;
 using Dull.Lights;
 using Dull.Materials;
@@ -42,8 +44,10 @@ namespace Dull
             0, 1, 3,   // first triangle
             1, 2, 3    // second triangle
         };
-        private bool _isObjectWindowOpened = true;
+        private bool _isObjectWindowOpened = false;
         private bool _isLightsWindowOpened = false;
+        private bool _isFileDialogWindowOpened = false;
+        private const string defaultFolderPath = "C:\\Users\\amis1\\Downloads";
 
         public Screen(int width, int height) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height)}) { }
        
@@ -220,6 +224,10 @@ namespace Dull
                     {
                         Close();
                     }
+                    if (ImGui.MenuItem("Add Model"))
+                    {
+                        _isFileDialogWindowOpened = true;
+                    }
 
                     ImGui.EndMenu();
                 }
@@ -271,6 +279,7 @@ namespace Dull
 
                     ImGui.EndMenu();
                 }
+                
 
                 if (ImGui.BeginMenu("Render Settings"))
                 {
@@ -340,6 +349,22 @@ namespace Dull
                 ImGui.EndMainMenuBar();
             }
 
+            if(_isFileDialogWindowOpened)
+                ImGui.OpenPopup("save-file");
+            if (ImGui.BeginPopupModal("save-file", ref _isFileDialogWindowOpened,ImGuiWindowFlags.NoResize))
+            {
+                var picker = FilePicker.GetFolderPicker(this, defaultFolderPath, ".obj", false);
+                if (picker.Draw())
+                {
+                    _scene.AddModel(picker.SelectedFile);
+                    _intersectionShader.Use();
+                    _scene.UpdateData(_intersectionShader.Handle);
+                    FilePicker.RemoveFilePicker(this);
+                    _isFileDialogWindowOpened = false;
+                }
+                ImGui.EndPopup();
+            }
+
             if (_isObjectWindowOpened && ImGui.Begin("Objects",ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoNavInputs |ImGuiWindowFlags.NoFocusOnAppearing))
             {
                 foreach (IHittable hittable in _scene.HitList.GetHittables())
@@ -369,7 +394,10 @@ namespace Dull
                         {
                             float param = mat.GetParam().Value;
                             if (ImGui.DragFloat("param", ref param, 0.005f))
+                            {
                                 mat.SetParam(param);
+                                hittable.SetUpdatedState();
+                            }
                         }
 
                         ITexture tex = mat.GetTexture();
@@ -415,7 +443,9 @@ namespace Dull
                                         tex.SetAlbedo(new Vector3[] { new Vector3(c1.X, c1.Y, c1.Z), new Vector3(c2.X, c2.Y, c2.Z) });
                                     break;
                                 }
+
                         }
+                        hittable.SetUpdatedState();
                         _scene.HitList.ChangeHittable(hittable);
                         ImGui.TreePop();
                     }
