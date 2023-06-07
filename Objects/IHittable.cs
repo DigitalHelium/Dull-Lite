@@ -4,7 +4,7 @@ using OpenTK.Mathematics;
 namespace Dull.Objects
 {
     public enum HittableType { Sphere, TriangleMT, Model };
-    interface IHittable
+    public interface IHittable
     {
         HittableType GetHitType();
         Vector4[] GetStd140Data();
@@ -15,6 +15,8 @@ namespace Dull.Objects
         string GetName();
         Vector3 GetPostion();
         int GetCount();
+        float GetScale();
+        void SetScale(float scaleFactor);
         void SetPostion(Vector3 position);
 
         IMaterial GetMaterial();

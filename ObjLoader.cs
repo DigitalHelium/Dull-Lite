@@ -14,7 +14,8 @@ namespace Dull
     {
         public List<Vector3> _verts = new List<Vector3>();
         public List<Vector3i> _faces = new List<Vector3i>();
-        private List<Vector3> _texcoords = new List<Vector3>();
+        public List<Vector3i> _facesTex = new List<Vector3i>();
+        public List<Vector3> _texcoords = new List<Vector3>();
         private const string LINE_VERTEX_TYPE = "v";
         private const string LINE_FACE_TYPE = "f";
         private const string LINE_TEXTURE_TYPE = "vt";
@@ -54,6 +55,20 @@ namespace Dull
                     }
                     catch (Exception ex) { Console.WriteLine(ex.Message + "at line " + lineCounter); return false; }
                 }
+                if (type == LINE_TEXTURE_TYPE)
+                {
+                    try
+                    {
+                        string[] dataStrings = data.Split(dataSeperators, StringSplitOptions.RemoveEmptyEntries);
+                        _texcoords.Add(new Vector3
+                            (
+                                float.Parse(dataStrings[0], CultureInfo.InvariantCulture),
+                                float.Parse(dataStrings[1], CultureInfo.InvariantCulture),
+                                0
+                            ));
+                    }
+                    catch (Exception ex) { Console.WriteLine(ex.Message + "at line " + lineCounter); return false; }
+                }
                 if (type == LINE_FACE_TYPE)
                 {
                     try
@@ -62,12 +77,22 @@ namespace Dull
                         List<Vector3i> vertices = new List<Vector3i>();
                         for (int i = 1; i <= dataStrings.Length - 2; i++)
                         {
+                            string[] t0 = dataStrings[0].Split(new[] { '/' }, StringSplitOptions.None);
+                            string[] ti = dataStrings[i].Split(new[] { '/' }, StringSplitOptions.None);
+                            string[] ti1 = dataStrings[i+1].Split(new[] { '/' }, StringSplitOptions.None);
                             _faces.Add(new Vector3i
                                 (
-                                    int.Parse(dataStrings[0].Split(new[] { '/' }, StringSplitOptions.None)[0]),
-                                    int.Parse(dataStrings[i].Split(new[] { '/' }, StringSplitOptions.None)[0]),
-                                    int.Parse(dataStrings[i + 1].Split(new[] { '/' }, StringSplitOptions.None)[0])
+                                    int.Parse(t0[0]),
+                                    int.Parse(ti[0]),
+                                    int.Parse(ti1[0])
                                 ));
+                            if (t0.Length > 1 && t0[1].Length>0)
+                                _facesTex.Add(new Vector3i
+                                    (
+                                        int.Parse(t0[1]),
+                                        int.Parse(ti[1]),
+                                        int.Parse(ti1[1])
+                                    ));
 
                         }
                     }

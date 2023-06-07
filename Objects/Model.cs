@@ -13,6 +13,8 @@ namespace Dull.Objects
         List<TriangleMT> _triangleMTs = new List<TriangleMT>();
         private int objectSize = 0;//in Vector4
         private HittableType _type = HittableType.Model;
+        private float _scale = 1;
+
         Vector4[] _data;
         private int _byteOffset = -1;
         private IMaterial _mat;
@@ -85,9 +87,13 @@ namespace Dull.Objects
             Vector3 newPos = new Vector3(0);
             foreach (TriangleMT tr in _triangleMTs)
             {
-                newPos+=tr.GetPostion();
+                newPos += tr.GetPostion();
             }
             _origin = newPos / _triangleMTs.Count;
+            foreach (TriangleMT tr in _triangleMTs)
+            {
+               tr.SetCenter(_origin);
+            }
             objectSize++;
         }
 
@@ -95,10 +101,24 @@ namespace Dull.Objects
         {
             foreach (TriangleMT tr in _triangleMTs)
             {
-                tr.SetPostion(tr.GetPostion()+_origin-position);
+                tr.SetPostion(tr.GetPostion()+ position - _origin);
             }
+            
             _origin = position;
             SetUpdatedState();
+        }
+        public void SetScale(float scaleFactor) 
+        {
+            foreach (TriangleMT tr in _triangleMTs)
+            {
+                tr.SetScale(scaleFactor);
+            }
+            _scale = scaleFactor;
+            SetUpdatedState();
+        }
+        public float GetScale()
+        {
+            return _scale;
         }
         private void SetStd140Data()
         {

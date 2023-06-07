@@ -11,7 +11,8 @@ namespace Dull.Objects
         private Vector3 _n;
         private Vector3 _v2v0, _v1v0;
         private bool _isOneSided;
-        private Vector3 _postion;
+        private Vector3 _position;
+        private float _scale = 1;
 
         public static int OBJECT_SIZE = 6;//in Vector4
         private HittableType _type = HittableType.TriangleMT;
@@ -29,7 +30,7 @@ namespace Dull.Objects
             _vn2 = vn2;
             _v2v0 = v2 - v0;
             _v1v0 = v1 - v0;
-            _postion = new Vector3((v0.X + v1.X + v2.X) / 3, (v0.Y + v1.Y + v2.Y) / 3, (v0.Z + v1.Z + v2.Z) / 3);
+            _position = new Vector3((v0.X + v1.X + v2.X) / 3, (v0.Y + v1.Y + v2.Y) / 3, (v0.Z + v1.Z + v2.Z) / 3);
             _n = Vector3.Cross(_v2v0, _v1v0);
             _isOneSided = isOneSided;
             _mat = mat;
@@ -48,7 +49,7 @@ namespace Dull.Objects
             _vn2 = new Vector3(0);
             _v2v0 = v2 - v0;
             _v1v0 = v1 - v0;
-            _postion = new Vector3((v0.X + v1.X + v2.X) / 3, (v0.Y + v1.Y + v2.Y) / 3, (v0.Z + v1.Z + v2.Z) / 3);
+            _position = new Vector3((v0.X + v1.X + v2.X) / 3, (v0.Y + v1.Y + v2.Y) / 3, (v0.Z + v1.Z + v2.Z) / 3);
             _n = Vector3.Cross(_v2v0, _v1v0);
             _isOneSided = isOneSided;
             _mat = mat;
@@ -108,19 +109,43 @@ namespace Dull.Objects
         }
         public Vector3 GetPostion()
         {
-            return _postion;
+            return _position;
         }
 
         public void SetPostion(Vector3 position)
         {
-            Vector3 posOffset = _postion - position;
+            Vector3 posOffset = position - _position;
             _v0 = _v0 + posOffset;
             _v1 = _v1 + posOffset;
             _v2 = _v2 + posOffset;
             _v2v0 = _v2 - _v0;
             _v1v0 = _v1 - _v0;
-            _postion = position;
+            _position = position;
             _isUpdated = true;
+        }
+        public void SetCenter(Vector3 center) 
+        {
+            _position = center;
+            _isUpdated = true;
+        }
+        public void SetScale(float scaleFactor)
+        {
+            _v0 = ScaleVertex(scaleFactor, _v0);
+            _v1 = ScaleVertex(scaleFactor, _v1);
+            _v2 = ScaleVertex(scaleFactor, _v2);
+            _v2v0 = _v2 - _v0;
+            _v1v0 = _v1 - _v0;
+            _scale = scaleFactor;
+            _isUpdated = true;
+        }
+        private Vector3 ScaleVertex(float scaleFactor, Vector3 vertex) 
+        {
+            Vector3 scaledVetrex = new Vector3();
+            for (int i = 0; i < 3; i++)
+            {
+                scaledVetrex[i] = _position[i] + scaleFactor * (vertex[i] - _position[i])/ _scale;
+            }
+            return scaledVetrex;
         }
         public IMaterial GetMaterial()
         {
@@ -137,6 +162,11 @@ namespace Dull.Objects
         public void SetUpdatedState()
         {
             _isUpdated = true;
+        }
+
+        public float GetScale()
+        {
+            return _scale;
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Dull.Objects
 {
-    class HittableList
+    public class HittableList
     {
         List<IHittable> _hitList = new List<IHittable>();
 

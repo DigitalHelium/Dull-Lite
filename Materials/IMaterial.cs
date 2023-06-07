@@ -4,7 +4,7 @@ using OpenTK.Mathematics;
 namespace Dull.Materials
 {
     public enum MaterialType { Lambertian = 0, Metal = 1, Dielectric = 2, Transparent = 3, DiffuseLight = 4 };
-    interface IMaterial
+    public interface IMaterial
     {
         int GetSizeInBytes();
         int GetSizeInVec4();

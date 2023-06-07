@@ -224,9 +224,20 @@ namespace Dull
                     {
                         Close();
                     }
-                    if (ImGui.MenuItem("Add Model"))
+                    if (ImGui.MenuItem("Add Model..."))
                     {
                         _isFileDialogWindowOpened = true;
+                    }
+                    if (ImGui.MenuItem("Add Model..."))
+                    {
+                        int fbo = GL.GenFramebuffer();
+                        GL.BindFramebuffer(FramebufferTarget.Framebuffer, fbo);
+                        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, _renderQuad.Handle, 0);
+                        int data_size = Size.X* Size.Y * 4;
+                        byte[] pixels = new byte[data_size];
+                        GL.ReadnPixels(0, 0, Size.X, Size.Y, PixelFormat.Rgba, PixelType.Byte, data_size, pixels);
+                        GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+                        GL.DeleteFramebuffer(fbo);
                     }
 
                     ImGui.EndMenu();
@@ -375,6 +386,12 @@ namespace Dull
                         System.Numerics.Vector3 objPos = new System.Numerics.Vector3(v.X, v.Y, v.Z);
                         if (ImGui.DragFloat3("Position", ref objPos, 0.1f))
                             hittable.SetPostion(new Vector3(objPos.X, objPos.Y, objPos.Z));
+
+                        float scale = hittable.GetScale();
+                        if (ImGui.DragFloat("scale", ref scale, 0.1f,0.1f,5))
+                        {
+                            hittable.SetScale(scale);
+                        }
 
                         IMaterial mat = hittable.GetMaterial();
                         int type = (int)mat.GetMaterialType();

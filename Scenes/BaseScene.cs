@@ -8,7 +8,7 @@ using System;
 
 namespace Dull.Scenes
 {
-    abstract class BaseScene
+    public abstract class BaseScene
     {
         protected HittableList _list;
         protected LightList _lights;
@@ -34,7 +34,13 @@ namespace Dull.Scenes
             for (int i = 0; i < loader._faces.Count; i++)
             {
                 var face = loader._faces[i];
-                m.addTriangle(new TriangleMT(loader._verts[face.X - 1], loader._verts[face.Y - 1], loader._verts[face.Z - 1], false, r));
+                if (i < loader._facesTex.Count)
+                {
+                    var faceTex = loader._facesTex[i];
+                    m.addTriangle(new TriangleMT(loader._verts[face.X - 1], loader._verts[face.Y - 1], loader._verts[face.Z - 1], loader._texcoords[faceTex.X - 1], loader._texcoords[faceTex.Y - 1], loader._texcoords[faceTex.Z - 1], false, r));
+                }
+                else
+                    m.addTriangle(new TriangleMT(loader._verts[face.X - 1], loader._verts[face.Y - 1], loader._verts[face.Z - 1], false, r));
             }
             _list.AddHittable(m);
         }

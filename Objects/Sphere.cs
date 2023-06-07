@@ -15,6 +15,7 @@ namespace Dull.Objects
         private int _byteOffset = -1;
         private IMaterial _mat;
         private bool _isUpdated = true;
+        private float _scale = 1;
         public Sphere(Vector3 center, float radius, IMaterial mat)
         {
             _center = center;
@@ -100,6 +101,18 @@ namespace Dull.Objects
         public void SetUpdatedState()
         {
             _isUpdated = true;
+        }
+
+        public float GetScale()
+        {
+            return _scale;
+        }
+
+        public void SetScale(float scaleFactor)
+        {
+            _radius = _radius/_scale*scaleFactor;
+            _scale = scaleFactor;
+            SetUpdatedState();
         }
     }
 }

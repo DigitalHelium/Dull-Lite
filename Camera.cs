@@ -5,7 +5,7 @@ using System;
 
 namespace Dull
 {
-    class Camera
+    public class Camera
     {
         private float _aspectRatio;
         private float _vfov;
@@ -58,6 +58,15 @@ namespace Dull
             _front = new Vector3(0, 0, -1);
             _right = Vector3.Cross(_front, _vup);
             _lookAt = lookFrom + _front;
+        }
+        public Camera()
+        {
+            _aspectRatio = 1;
+            _vfov = 30;
+            _lookFrom = new Vector3(0, 1, 6);
+            _front = new Vector3(0, 0, -1);
+            _right = Vector3.Cross(_front, _vup);
+            _lookAt = _lookFrom + _front;
         }
 
         public void UpdateParamLocations(int shaderHandle)
