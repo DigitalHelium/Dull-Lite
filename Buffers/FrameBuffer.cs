@@ -24,8 +24,22 @@ namespace Dull
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, _handle);
 
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, textureHandle, 0);
-
+        }
+        public void DetachTexture()
+        {
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+
+        }
+        ~FrameBuffer()
+        {
+            GL.DeleteFramebuffer(_handle);
+        }
+        public byte[] ReadBufferToByteArray(int width, int height, PixelFormat pixelFormat, PixelType pixelType)
+        {
+            int data_size = width * height * 4;
+            byte[] pixels = new byte[data_size];
+            GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.Rgba, PixelType.UnsignedByte, pixels);
+            return pixels;
         }
         public void AttachTexture(int[] textureHandles)
         {

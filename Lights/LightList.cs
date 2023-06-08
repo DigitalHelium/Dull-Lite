@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Dull.Lights
 {
-    internal class LightList
+    public class LightList
     {
         List<ILight> _lights = new List<ILight>();
 

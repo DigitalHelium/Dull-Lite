@@ -4,7 +4,7 @@ using OpenTK.Mathematics;
 namespace Dull.Lights
 {
     public enum LightType { PointLight };
-    internal interface ILight
+    public interface ILight
     {
         LightType GetLightType();
         Vector4[] GetStd140Data();
@@ -12,14 +12,14 @@ namespace Dull.Lights
         void SetOffset(int offset);
         int GetSizeInBytes();
         string GetInfo();
-
+        string GetName();
         Vector3 GetPostion();
         void SetPostion(Vector3 position);
 
         Vector3 GetColor();
         void SetColor(Vector3 color);
 
-        int GetIntensity();
-        void SetIntensity(int intensity);
+        float GetIntensity();
+        void SetIntensity(float intensity);
     }
 }

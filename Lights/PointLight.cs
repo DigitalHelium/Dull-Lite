@@ -9,18 +9,26 @@ namespace Dull.Lights
     internal class PointLight : ILight
     {
         private Vector3 _position;
-        private int _intensity;
+        private float _intensity;
         private Vector3 _color;
 
         private static int _objectSize = 2;//in Vector4
         private LightType _type = LightType.PointLight;
         Vector4[] _data;
         private int _byteOffset = -1;
-        public PointLight(Vector3 position, int intensity, Vector3 color)
+        public PointLight(Vector3 position, float intensity, Vector3 color)
         {
             _position = position;
             _intensity = intensity;
             _color = color;
+            _data = new Vector4[_objectSize];
+            SetStd140Data();
+        }
+        public PointLight(Vector3 position, float intensity, Vector3i color)
+        {
+            _position = position;
+            _intensity = intensity;
+            _color = new Vector3(color.X / 255.0f, color.Y / 255.0f, color.Z / 255.0f);
             _data = new Vector4[_objectSize];
             SetStd140Data();
         }
@@ -40,7 +48,10 @@ namespace Dull.Lights
         {
             return $"Light:PointLight Position:{_data[0]} Intensity: {_intensity} Color: {_color}";
         }
-
+        public string GetName()
+        {
+            return "Point Light";
+        }
         public int GetOffset()
         {
             return _byteOffset;
@@ -82,12 +93,12 @@ namespace Dull.Lights
             _color = color;
         }
 
-        public int GetIntensity()
+        public float GetIntensity()
         {
             return _intensity;
         }
 
-        public void SetIntensity(int intensity)
+        public void SetIntensity(float intensity)
         {
             _intensity = intensity;
         }

@@ -29,6 +29,11 @@ namespace Dull
             GL.BufferData(BufferTarget.ShaderStorageBuffer, data.Length, data, BufferUsageHint.DynamicCopy);
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, 0);
         }
+        public void ClearData()
+        {
+            float zero =  0.0f;
+            GL.ClearNamedBufferData(_handle, PixelInternalFormat.R32f, PixelFormat.Red, PixelType.Float, (IntPtr)zero);
+        }
         public void AttachSubData(byte[] data,int offset)
         {
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, _handle);

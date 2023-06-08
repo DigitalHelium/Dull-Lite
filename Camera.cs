@@ -5,7 +5,7 @@ using System;
 
 namespace Dull
 {
-    class Camera
+    public class Camera
     {
         private float _aspectRatio;
         private float _vfov;
@@ -30,6 +30,26 @@ namespace Dull
         private int _lookFromLocation;
         private int _lookAtLocation;
 
+        public Camera(float aspectRatio, float vfov, Vector3 lookFrom, float speed)
+        {
+            _aspectRatio = aspectRatio;
+            _vfov = vfov;
+            _lookFrom = lookFrom;
+            _front = new Vector3(0, 0, -1);
+            _right = Vector3.Cross(_front, _vup);
+            _lookAt = lookFrom + _front;
+            _speed = speed;
+        }
+        public Camera(float aspectRatio, float vfov, Vector3 lookFrom, Vector3 lookAt, float speed)
+        {
+            _aspectRatio = aspectRatio;
+            _vfov = vfov;
+            _lookFrom = lookFrom;
+            _front = new Vector3(0, 0, -1);
+            _right = Vector3.Cross(_front, _vup);
+            _lookAt = lookAt;
+            _speed = speed;
+        }
         public Camera(float aspectRatio, float vfov, Vector3 lookFrom)
         {
             _aspectRatio = aspectRatio;
@@ -39,6 +59,16 @@ namespace Dull
             _right = Vector3.Cross(_front, _vup);
             _lookAt = lookFrom + _front;
         }
+        public Camera()
+        {
+            _aspectRatio = 1;
+            _vfov = 30;
+            _lookFrom = new Vector3(0, 1, 6);
+            _front = new Vector3(0, 0, -1);
+            _right = Vector3.Cross(_front, _vup);
+            _lookAt = _lookFrom + _front;
+        }
+
         public void UpdateParamLocations(int shaderHandle)
         {
             _screenWidthLocation = GL.GetUniformLocation(shaderHandle, "image_width");
@@ -127,5 +157,6 @@ namespace Dull
         public Vector3 Front { get => _front; set { _front = value; _right = Vector3.Cross(_front, _vup); } }
         public Vector3 Right { get => _right; }
         public float Sensitivity { get => _sensitivity; set => _sensitivity = value; }
+        public float Speed { get => _speed; set => _speed = value; }
     }
 }

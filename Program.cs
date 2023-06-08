@@ -6,9 +6,11 @@ namespace Dull
     {
         static void Main(string[] args)
         {
-            using (Screen scrn = new Screen(1600, 1200))
+            using (Screen scrn = new Screen(1000, 900))
             {
                 scrn.CursorState = CursorState.Grabbed;
+                //scrn.VSync = VSyncMode.On;
+                //scrn.RenderFrequency = 30.0f;
                 scrn.Run();
             }
         }
