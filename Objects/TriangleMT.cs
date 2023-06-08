@@ -13,6 +13,7 @@ namespace Dull.Objects
         private bool _isOneSided;
         private Vector3 _position;
         private float _scale = 1;
+        private Vector3 _rotation = new Vector3(0);
 
         public static int OBJECT_SIZE = 6;//in Vector4
         private HittableType _type = HittableType.TriangleMT;
@@ -130,22 +131,90 @@ namespace Dull.Objects
         }
         public void SetScale(float scaleFactor)
         {
-            _v0 = ScaleVertex(scaleFactor, _v0);
-            _v1 = ScaleVertex(scaleFactor, _v1);
-            _v2 = ScaleVertex(scaleFactor, _v2);
+            ScaleVertex(scaleFactor, ref _v0);
+            ScaleVertex(scaleFactor, ref _v1);
+            ScaleVertex(scaleFactor, ref _v2);
             _v2v0 = _v2 - _v0;
             _v1v0 = _v1 - _v0;
             _scale = scaleFactor;
             _isUpdated = true;
         }
-        private Vector3 ScaleVertex(float scaleFactor, Vector3 vertex) 
+        public void SetRotation(float xAngle, float yAngle, float zAngle) 
         {
-            Vector3 scaledVetrex = new Vector3();
-            for (int i = 0; i < 3; i++)
+            zAngle = DegreesToRadians(zAngle);
+            xAngle = DegreesToRadians(xAngle);
+            yAngle = DegreesToRadians(yAngle);
+            if (xAngle != _rotation.X)
             {
-                scaledVetrex[i] = _position[i] + scaleFactor * (vertex[i] - _position[i])/ _scale;
+                _rotation.X += xAngle;
+                RotateVertexAlongXaxis(xAngle, ref _v0);
+                RotateVertexAlongXaxis(xAngle, ref _v1);
+                RotateVertexAlongXaxis(xAngle, ref _v2);
             }
-            return scaledVetrex;
+            if (yAngle != _rotation.Y)
+            {
+                _rotation.Y += yAngle;
+                RotateVertexAlongYaxis(yAngle, ref _v0);
+                RotateVertexAlongYaxis(yAngle, ref _v1);
+                RotateVertexAlongYaxis(yAngle, ref _v2);
+            }
+            if (zAngle != _rotation.Z)
+            {
+                _rotation.Z += zAngle;
+                RotateVertexAlongZaxis(zAngle, ref _v0);
+                RotateVertexAlongZaxis(zAngle, ref _v1);
+                RotateVertexAlongZaxis(zAngle, ref _v2);
+            }
+            _v2v0 = _v2 - _v0;
+            _v1v0 = _v1 - _v0;
+            _isUpdated = true;
+        }
+        public Vector3 GetRotation()
+        {
+            return _rotation;
+        }
+        private float DegreesToRadians(float angle)
+        {
+            return angle * MathF.PI / 180;
+        }
+        private void RotateVertexAlongZaxis(float angle, ref Vector3 vertex) 
+        {
+            Matrix3 rotationMatrix = new Matrix3
+            {
+                M11 = MathF.Cos(angle),M12 = -MathF.Sin(angle),M13 = 0,
+                M21 = MathF.Sin(angle),M22 = MathF.Cos(angle), M23 = 0,
+                M31 = 0, M32 = 0, M33 = 1
+            };
+            vertex =  rotationMatrix*(vertex - _position) + _position;
+        }
+        private void RotateVertexAlongYaxis(float angle, ref Vector3 vertex)
+        {
+            Matrix3 rotationMatrix = new Matrix3
+            {
+                M11 = MathF.Cos(angle),M12 = 0,M13 = -MathF.Sin(angle),
+                M21 = 0,M22 = 1,M23 = 0,
+                M31 = MathF.Sin(angle),M32 = 0,M33 = MathF.Cos(angle)
+
+            };
+            vertex = rotationMatrix * (vertex - _position) + _position;
+        }
+        private void RotateVertexAlongXaxis(float angle, ref Vector3 vertex)
+        {
+            Matrix3 rotationMatrix = new Matrix3
+            {
+                M11 = 1, M12 = 0, M13 = 0,
+                M21 = 0,M22 = MathF.Cos(angle),M23 = -MathF.Sin(angle),
+                M31 = 0 ,M32 = MathF.Sin(angle), M33 =  MathF.Cos(angle)
+
+            };
+            vertex = rotationMatrix * (vertex - _position) + _position;
+        }
+        private void ScaleVertex(float scaleFactor, ref Vector3 vertex) 
+        {
+            float scaleRatio = scaleFactor / _scale;
+            vertex.X = _position[0] + scaleRatio * (vertex[0] - _position[0]);
+            vertex.Y = _position[1] + scaleRatio * (vertex[1] - _position[1]);
+            vertex.Z = _position[2] + scaleRatio * (vertex[2] - _position[2]);
         }
         public IMaterial GetMaterial()
         {

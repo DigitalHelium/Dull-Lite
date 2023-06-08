@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Windows;
+using System.Linq;
 using Dull.GUI;
 using Dull.Lights;
 using Dull.Materials;
@@ -14,6 +13,9 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace Dull
 {
@@ -133,9 +135,10 @@ namespace Dull
             GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
 
 
-            OnDrawGUI();//new
+            OnDrawGUI();
             _controller.Render();
             SwapBuffers();
+            GL.BindTexture(TextureTarget.Texture2D, _renderQuad.Handle);
         }
         protected override void OnResize(ResizeEventArgs e)
         {
@@ -179,7 +182,8 @@ namespace Dull
                     isCursorGrabbed = true;
                 }
             }
-
+            if (e.Key == Keys.Home)
+                TakeScreenshot();
 
             if (e.Key == Keys.F)
             {
@@ -209,7 +213,27 @@ namespace Dull
                 _scene.Camera.FOV -= e.OffsetY; 
         }
 
+        private void TakeScreenshot()
+        {
+            FrameBuffer frameBuffer = new FrameBuffer(_renderQuad.Handle);
+            byte[] pixels = frameBuffer.ReadBufferToByteArray(Size.X, Size.Y, PixelFormat.Rgba, PixelType.UnsignedByte);
+            frameBuffer.DetachTexture();
+            int i = 0;
+            byte[] tmp = new byte[Size.X * 4];
+            while (i < Size.Y / 2)
+            {
+                for (int j = 0; j < Size.X * 4; j++)
+                {
+                    tmp[j] = pixels[i * Size.X * 4 + j];
+                }
+                System.Array.Copy(pixels, (Size.Y - i - 1) * 4 * Size.X, pixels, i * Size.X * 4, 4 * Size.X);
+                System.Array.Copy(tmp, 0, pixels, (Size.Y - i - 1) * 4 * Size.X, 4 * Size.X);
+                i++;
+            }
 
+            SixLabors.ImageSharp.Image img = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(pixels, Size.X, Size.Y);
+            img.SaveAsBmp(string.Format("{0}\\screenshot({1:dd-MM-yyyy ms-ss-mm-HH}).bmp", Environment.CurrentDirectory,DateTime.Now));
+        }
         void OnDrawGUI()
         {
 
@@ -228,18 +252,10 @@ namespace Dull
                     {
                         _isFileDialogWindowOpened = true;
                     }
-                    if (ImGui.MenuItem("Add Model..."))
+                    if (ImGui.MenuItem("Take screenshot", "Home"))
                     {
-                        int fbo = GL.GenFramebuffer();
-                        GL.BindFramebuffer(FramebufferTarget.Framebuffer, fbo);
-                        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, _renderQuad.Handle, 0);
-                        int data_size = Size.X* Size.Y * 4;
-                        byte[] pixels = new byte[data_size];
-                        GL.ReadnPixels(0, 0, Size.X, Size.Y, PixelFormat.Rgba, PixelType.Byte, data_size, pixels);
-                        GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-                        GL.DeleteFramebuffer(fbo);
+                        TakeScreenshot();
                     }
-
                     ImGui.EndMenu();
                 }
                 if (ImGui.BeginMenu("Windows"))
@@ -361,8 +377,8 @@ namespace Dull
             }
 
             if(_isFileDialogWindowOpened)
-                ImGui.OpenPopup("save-file");
-            if (ImGui.BeginPopupModal("save-file", ref _isFileDialogWindowOpened,ImGuiWindowFlags.NoResize))
+                ImGui.OpenPopup("open-file");
+            if (ImGui.BeginPopupModal("open-file", ref _isFileDialogWindowOpened,ImGuiWindowFlags.NoResize))
             {
                 var picker = FilePicker.GetFolderPicker(this, defaultFolderPath, ".obj", false);
                 if (picker.Draw())
@@ -378,7 +394,7 @@ namespace Dull
 
             if (_isObjectWindowOpened && ImGui.Begin("Objects",ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoNavInputs |ImGuiWindowFlags.NoFocusOnAppearing))
             {
-                foreach (IHittable hittable in _scene.HitList.GetHittables())
+                foreach (IHittable hittable in _scene.HitList.GetHittables().ToList())
                 {
                     if (ImGui.TreeNode(hittable.GetName() + " " + hittable.GetOffset().ToString()))
                     {
@@ -388,9 +404,15 @@ namespace Dull
                             hittable.SetPostion(new Vector3(objPos.X, objPos.Y, objPos.Z));
 
                         float scale = hittable.GetScale();
-                        if (ImGui.DragFloat("scale", ref scale, 0.1f,0.1f,5))
+                        if (ImGui.DragFloat("Scale", ref scale, 0.05f,0.1f,5))
                         {
                             hittable.SetScale(scale);
+                        }
+                        Vector3 r = hittable.GetRotation();
+                        System.Numerics.Vector3 objRot = new System.Numerics.Vector3(r.X, r.Y, r.Z);
+                        if (ImGui.DragFloat3("Rotation", ref objRot, 5, -360, 360))
+                        {
+                            hittable.SetRotation(objRot.X, objRot.Y, objRot.Z);
                         }
 
                         IMaterial mat = hittable.GetMaterial();
@@ -410,7 +432,7 @@ namespace Dull
                         if (type == (int)MaterialType.Dielectric || type == (int)MaterialType.Metal || type == (int)MaterialType.Transparent)
                         {
                             float param = mat.GetParam().Value;
-                            if (ImGui.DragFloat("param", ref param, 0.005f))
+                            if (ImGui.DragFloat("Parameter", ref param, 0.005f))
                             {
                                 mat.SetParam(param);
                                 hittable.SetUpdatedState();
@@ -464,8 +486,23 @@ namespace Dull
                         }
                         hittable.SetUpdatedState();
                         _scene.HitList.ChangeHittable(hittable);
+                        if (ImGui.Button("Delete Object"))
+                        {
+                            _scene.HitList.RemoveHittable(hittable);
+                            _scene.HitList.DataToBuffer(_intersectionShader.Handle);
+                        }
                         ImGui.TreePop();
                     }
+                    
+                }
+                if (ImGui.Button("Add Sphere"))
+                {
+                    _scene.AddSphere(_intersectionShader.Handle);
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Add Plane"))
+                {
+                    _scene.AddPlane(_intersectionShader.Handle);
                 }
 
                 ImGui.End();

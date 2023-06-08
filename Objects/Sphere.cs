@@ -16,6 +16,7 @@ namespace Dull.Objects
         private IMaterial _mat;
         private bool _isUpdated = true;
         private float _scale = 1;
+        private Vector3 _rotation = new Vector3();
         public Sphere(Vector3 center, float radius, IMaterial mat)
         {
             _center = center;
@@ -113,6 +114,21 @@ namespace Dull.Objects
             _radius = _radius/_scale*scaleFactor;
             _scale = scaleFactor;
             SetUpdatedState();
+        }
+
+        public void SetRotation(float xAngle, float yAngle, float zAngle)
+        {
+            _rotation = new Vector3
+            {
+                X = xAngle,
+                Y = yAngle,
+                Z = zAngle
+            };
+        }
+
+        public Vector3 GetRotation()
+        {
+            return _rotation;
         }
     }
 }

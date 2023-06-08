@@ -14,6 +14,7 @@ namespace Dull.Objects
         private int objectSize = 0;//in Vector4
         private HittableType _type = HittableType.Model;
         private float _scale = 1;
+        private Vector3 _rotation = new Vector3(0);
 
         Vector4[] _data;
         private int _byteOffset = -1;
@@ -116,6 +117,21 @@ namespace Dull.Objects
             _scale = scaleFactor;
             SetUpdatedState();
         }
+        public void SetRotation(float xAngle, float yAngle, float zAngle)
+        {
+            foreach (TriangleMT tr in _triangleMTs)
+            {
+                tr.SetRotation(xAngle-_rotation.X, yAngle- _rotation.Y, zAngle- _rotation.Z);
+            }
+            _rotation.X = xAngle;
+            _rotation.Y = yAngle;
+            _rotation.Z = zAngle;
+            SetUpdatedState();
+        }
+        public Vector3 GetRotation()
+        {
+            return _rotation;
+        }
         public float GetScale()
         {
             return _scale;
@@ -146,5 +162,7 @@ namespace Dull.Objects
         {
             _isUpdated = true;
         }
+
+        
     }
 }

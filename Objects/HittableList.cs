@@ -37,6 +37,10 @@ namespace Dull.Objects
         {
             _hitList.Add(hittable);
         }
+        public void RemoveHittable(IHittable hittable)
+        {
+            _hitList.Remove(hittable);
+        }
         public void DataToBuffer(int shaderHandle)
         {
             _trianglemtSizeInBytes = SIZE_OFFSET;
