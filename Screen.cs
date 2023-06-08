@@ -410,7 +410,7 @@ namespace Dull
                         }
                         Vector3 r = hittable.GetRotation();
                         System.Numerics.Vector3 objRot = new System.Numerics.Vector3(r.X, r.Y, r.Z);
-                        if (ImGui.DragFloat3("Rotation", ref objRot, 5, -360, 360))
+                        if (ImGui.DragFloat3("Rotation", ref objRot, 1, -360, 360))
                         {
                             hittable.SetRotation(objRot.X, objRot.Y, objRot.Z);
                         }

@@ -144,21 +144,21 @@ namespace Dull.Objects
             zAngle = DegreesToRadians(zAngle);
             xAngle = DegreesToRadians(xAngle);
             yAngle = DegreesToRadians(yAngle);
-            if (xAngle != _rotation.X)
+            if (xAngle != 0)
             {
                 _rotation.X += xAngle;
                 RotateVertexAlongXaxis(xAngle, ref _v0);
                 RotateVertexAlongXaxis(xAngle, ref _v1);
                 RotateVertexAlongXaxis(xAngle, ref _v2);
             }
-            if (yAngle != _rotation.Y)
+            if (yAngle != 0)
             {
                 _rotation.Y += yAngle;
                 RotateVertexAlongYaxis(yAngle, ref _v0);
                 RotateVertexAlongYaxis(yAngle, ref _v1);
                 RotateVertexAlongYaxis(yAngle, ref _v2);
             }
-            if (zAngle != _rotation.Z)
+            if (zAngle != 0)
             {
                 _rotation.Z += zAngle;
                 RotateVertexAlongZaxis(zAngle, ref _v0);
