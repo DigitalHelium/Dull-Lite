@@ -24,6 +24,14 @@ namespace Dull.Scenes
             HitList.DataToBuffer(shaderHandle);
             LightList.DataTobuffer(shaderHandle);
         }
+        public void UpdateHitList(int shaderHandle)
+        {
+            HitList.DataToBuffer(shaderHandle);
+        }
+        public void UpdateCamera(int shaderHandle)
+        {
+            Camera.UpdateParamLocations(shaderHandle);
+        }
         public void AddModel(string path) 
         {
             var loader = new ObjLoader();
@@ -51,7 +59,7 @@ namespace Dull.Scenes
             Random rnd = new Random();
             Lambertian r = new Lambertian(new SolidColor(new Vector3i(rnd.Next(0, 255), rnd.Next(0, 255), rnd.Next(0, 255))));
             _list.AddHittable(new Sphere(new Vector3(0,0,0),minSize + (maxSize-maxSize)*(float)rnd.NextDouble(),r));
-            UpdateData(shaderHandle);
+            UpdateHitList(shaderHandle);
         }
         public void AddPlane(int shaderHandle)
         {
@@ -61,7 +69,7 @@ namespace Dull.Scenes
             m.addTriangle(new TriangleMT(new Vector3(-1, 0, -1), new Vector3(-1, 1, -1), new Vector3(1, 1, -1), new Vector3(0, 0, 0), new Vector3(0, 1, 0), new Vector3(1, 1, 0), false, r));
             m.addTriangle(new TriangleMT(new Vector3(-1, 0, -1), new Vector3(1, 0, -1), new Vector3(1, 1, -1), new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(1, 1, 0), false, r));
             _list.AddHittable(m);
-            UpdateData(shaderHandle);
+            UpdateHitList(shaderHandle);
         }
 
     }

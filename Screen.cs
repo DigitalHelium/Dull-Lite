@@ -232,7 +232,7 @@ namespace Dull
             }
 
             SixLabors.ImageSharp.Image img = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(pixels, Size.X, Size.Y);
-            img.SaveAsBmp(string.Format("{0}\\screenshot({1:dd-MM-yyyy ms-ss-mm-HH}).bmp", Environment.CurrentDirectory,DateTime.Now));
+            img.SaveAsBmp(string.Format("{0}\\Screenshots\\screenshot({1:dd-MM-yyyy ms-ss-mm-HH}).bmp", Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName,DateTime.Now));
         }
         void OnDrawGUI()
         {
@@ -361,10 +361,14 @@ namespace Dull
                     ImGui.AlignTextToFramePadding();
                     ImGui.Text("Window Resolution"); ImGui.SameLine();
                     ImGui.PushItemWidth(100);
-                    if (ImGui.InputInt2("  ", ref size.X))
+                    if (ImGui.InputInt("##sizex", ref size.X))
                     {
-                        if(Size.Y != size.Y)
-                            size.Y += mainMenuBarHeight;
+                        Size = size;
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.InputInt("##sizey", ref size.Y))
+                    {
+                        //size.Y += mainMenuBarHeight;
                         Size = size;
                     }
                     ImGui.Text($"Camera FOV:{_scene.Camera.FOV}");

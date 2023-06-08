@@ -28,6 +28,9 @@ namespace Dull.Lights
 
         public void DataTobuffer(int shaderHandle)
         {
+            _pointLightCount = 0;
+
+            _pointLightSizeInBytes = SIZE_OFFSET;
             CalcSizes();
             _buf.ResizeBuffer(_pointLightSizeInBytes);
 
