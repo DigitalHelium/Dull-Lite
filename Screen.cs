@@ -361,14 +361,8 @@ namespace Dull
                     ImGui.AlignTextToFramePadding();
                     ImGui.Text("Window Resolution"); ImGui.SameLine();
                     ImGui.PushItemWidth(100);
-                    if (ImGui.InputInt("##sizex", ref size.X))
+                    if (ImGui.InputInt2("##sizex", ref size.X))
                     {
-                        Size = size;
-                    }
-                    ImGui.SameLine();
-                    if (ImGui.InputInt("##sizey", ref size.Y))
-                    {
-                        //size.Y += mainMenuBarHeight;
                         Size = size;
                     }
                     ImGui.Text($"Camera FOV:{_scene.Camera.FOV}");
