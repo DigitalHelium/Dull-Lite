@@ -82,7 +82,7 @@ namespace Dull
             GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices, BufferUsageHint.StaticDraw);
 
 
-            _intersectionShader = new ComputeShader(@"..\..\..\Shaders\Intersection.comp");
+            _intersectionShader = new ComputeShader(@".\Shaders\Intersection.comp");
             _intersectionShader.Use();
 
             _scene = new ReflectionTest((float)Size.X / Size.Y);
