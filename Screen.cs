@@ -16,6 +16,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
+using Microsoft.Win32;
 
 namespace Dull
 {
@@ -49,7 +50,12 @@ namespace Dull
         private bool _isObjectWindowOpened = false;
         private bool _isLightsWindowOpened = false;
         private bool _isFileDialogWindowOpened = false;
-        private const string defaultFolderPath = "C:\\Users\\amis1\\Downloads";
+        private static string downloadsGuid = "{374DE290-123F-4565-9164-39C4925E467B}";
+        private string defaultFolderPath = (string)Registry.GetValue(
+            @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders",
+            downloadsGuid,
+            string.Empty
+        );
 
         public Screen(int width, int height) : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = (width, height)}) { }
        
@@ -58,7 +64,7 @@ namespace Dull
             base.OnLoad();
             CursorState = CursorState.Grabbed;
 
-            _shader = new Shader(@"..\..\..\Shaders\CameraShader.vert", @"..\..\..\Shaders\CameraShader.frag");
+            _shader = new Shader(@".\Shaders\CameraShader.vert", @".\Shaders\CameraShader.frag");
 
             _shader.Use();
 

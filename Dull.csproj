@@ -6,7 +6,26 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Shaders\CameraShader.frag" />
+    <None Remove="Shaders\CameraShader.vert" />
+    <None Remove="Shaders\Intersection.comp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Shaders\CameraShader.frag">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\CameraShader.vert">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\Intersection.comp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ImGui.NET" Version="1.89.4" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="OpenTK" Version="4.7.5" />
     <PackageReference Include="SixLabors.ImageSharp" Version="2.1.4" />
     <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
